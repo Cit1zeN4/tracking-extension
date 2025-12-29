@@ -1,0 +1,71 @@
+{
+  "name": "tracking-extension",
+  "displayName": "Time Tracking Extension",
+  "description": "VS Code extension for tracking time spent on tasks and projects",
+  "version": "0.0.1",
+  "publisher": "your-publisher",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "tracking-extension.startTimer",
+        "title": "Start Timer"
+      },
+      {
+        "command": "tracking-extension.stopTimer",
+        "title": "Stop Timer"
+      },
+      {
+        "command": "tracking-extension.pauseTimer",
+        "title": "Pause Timer"
+      },
+      {
+        "command": "tracking-extension.createTask",
+        "title": "Create Task"
+      },
+      {
+        "command": "tracking-extension.viewLogs",
+        "title": "View Time Logs"
+      },
+      {
+        "command": "tracking-extension.viewTasks",
+        "title": "View Tasks"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js",
+    "format": "eslint --fix src --ext ts"
+  },
+  "devDependencies": {
+    "@types/glob": "^8.1.0",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "16.x",
+    "@types/vscode": "^1.74.0",
+    "@typescript-eslint/eslint-plugin": "^5.53.0",
+    "@typescript-eslint/parser": "^5.53.0",
+    "@vscode/test-electron": "^2.3.0",
+    "eslint": "^8.34.0",
+    "eslint-config-google": "^0.14.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "glob": "^8.1.0",
+    "mocha": "^10.2.0",
+    "prettier": "^3.7.4",
+    "typescript": "^4.9.5"
+  }
+}
