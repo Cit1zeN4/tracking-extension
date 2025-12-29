@@ -24,6 +24,8 @@ export class TimerService {
   private completedEntries: TimeEntry[] = [];
   private intervalId?: NodeJS.Timeout;
   private context: vscode.ExtensionContext;
+  private _onStateChanged = new vscode.EventEmitter<void>();
+  public readonly onTimerStateChanged = this._onStateChanged.event;
 
   constructor(context: vscode.ExtensionContext) {
     this.context = context;
@@ -51,6 +53,7 @@ export class TimerService {
 
     this.startInterval();
     this.saveState();
+    this._onStateChanged.fire();
   }
 
   stopTimer(): TimeEntry | undefined {
@@ -76,6 +79,7 @@ export class TimerService {
 
     this.stopInterval();
     this.saveState();
+    this._onStateChanged.fire();
 
     return completedEntry;
   }
@@ -88,6 +92,7 @@ export class TimerService {
     this.state.isRunning = false;
     this.stopInterval();
     this.saveState();
+    this._onStateChanged.fire();
   }
 
   resumeTimer(): void {
@@ -98,6 +103,7 @@ export class TimerService {
     this.state.isRunning = true;
     this.startInterval();
     this.saveState();
+    this._onStateChanged.fire();
   }
 
   getState(): TimerState {
@@ -106,6 +112,15 @@ export class TimerService {
 
   getCompletedEntries(): TimeEntry[] {
     return [...this.completedEntries];
+  }
+
+  getStatus(): string {
+    if (this.state.isRunning) {
+      const minutes = Math.floor(this.state.elapsedTime / 60000);
+      const seconds = Math.floor((this.state.elapsedTime % 60000) / 1000);
+      return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    }
+    return 'Stopped';
   }
 
   private startInterval(): void {

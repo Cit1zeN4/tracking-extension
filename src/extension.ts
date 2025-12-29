@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { TimerService } from './timerService';
 import { TaskService, Task } from './taskService';
+import { SidebarProvider } from './sidebarProvider';
 
 let timerService: TimerService;
 let taskService: TaskService;
@@ -11,6 +12,10 @@ export function activate(context: vscode.ExtensionContext) {
 
   timerService = new TimerService(context);
   taskService = new TaskService(context);
+
+  // Register sidebar
+  const sidebarProvider = new SidebarProvider(timerService, taskService);
+  context.subscriptions.push(vscode.window.registerTreeDataProvider(SidebarProvider.viewType, sidebarProvider));
 
   // Create status bar item
   statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
@@ -94,6 +99,12 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.window.showInformationMessage(`Tasks:\n${taskText}`);
   });
 
+  const openSidebarCommand = vscode.commands.registerCommand('tracking-extension.openSidebar', () => {
+    vscode.commands.executeCommand('workbench.view.explorer');
+    // Focus the specific view
+    vscode.commands.executeCommand('workbench.view.extension.tracking-extension.sidebar');
+  });
+
   // Add to subscriptions for proper disposal
   context.subscriptions.push(
     startTimerCommand,
@@ -101,7 +112,8 @@ export function activate(context: vscode.ExtensionContext) {
     pauseTimerCommand,
     createTaskCommand,
     viewLogsCommand,
-    viewTasksCommand
+    viewTasksCommand,
+    openSidebarCommand
   );
 }
 

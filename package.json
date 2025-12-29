@@ -11,22 +11,26 @@
     "Other"
   ],
   "activationEvents": [
-    "onStartupFinished"
+    "onStartupFinished",
+    "onView:tracking-extension.sidebar"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "tracking-extension.startTimer",
-        "title": "Start Timer"
+        "title": "Start Timer",
+        "icon": "$(play)"
       },
       {
         "command": "tracking-extension.stopTimer",
-        "title": "Stop Timer"
+        "title": "Stop Timer",
+        "icon": "$(stop)"
       },
       {
         "command": "tracking-extension.pauseTimer",
-        "title": "Pause Timer"
+        "title": "Pause Timer",
+        "icon": "$(debug-pause)"
       },
       {
         "command": "tracking-extension.createTask",
@@ -39,8 +43,48 @@
       {
         "command": "tracking-extension.viewTasks",
         "title": "View Tasks"
+      },
+      {
+        "command": "tracking-extension.openSidebar",
+        "title": "Open Time Tracking Sidebar"
       }
-    ]
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "tracking-extension",
+          "title": "Time Tracking",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "tracking-extension": [
+        {
+          "id": "tracking-extension.sidebar",
+          "name": "Time Tracking"
+        }
+      ]
+    },
+    "menus": {
+      "view/item/context": [
+        {
+          "command": "tracking-extension.startTimer",
+          "when": "view == tracking-extension.sidebar && viewItem == timer",
+          "group": "inline"
+        },
+        {
+          "command": "tracking-extension.stopTimer",
+          "when": "view == tracking-extension.sidebar && viewItem == timer",
+          "group": "inline"
+        },
+        {
+          "command": "tracking-extension.pauseTimer",
+          "when": "view == tracking-extension.sidebar && viewItem == timer",
+          "group": "inline"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

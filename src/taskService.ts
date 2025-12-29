@@ -12,6 +12,8 @@ export interface Task {
 export class TaskService {
   private tasks: Task[] = [];
   private context: vscode.ExtensionContext;
+  private _onTasksChanged = new vscode.EventEmitter<void>();
+  public readonly onTasksChanged = this._onTasksChanged.event;
 
   constructor(context: vscode.ExtensionContext) {
     this.context = context;
@@ -29,6 +31,7 @@ export class TaskService {
 
     this.tasks.push(task);
     this.saveTasks();
+    this._onTasksChanged.fire();
     return task;
   }
 
@@ -38,6 +41,22 @@ export class TaskService {
 
   getTaskById(id: string): Task | undefined {
     return this.tasks.find((task) => task.id === id);
+  }
+
+  deleteTask(id: string): void {
+    this.tasks = this.tasks.filter((task) => task.id !== id);
+    this.saveTasks();
+    this._onTasksChanged.fire();
+  }
+
+  updateTask(id: string, title?: string, description?: string): void {
+    const task = this.tasks.find((t) => t.id === id);
+    if (task) {
+      if (title !== undefined) task.title = title;
+      if (description !== undefined) task.description = description;
+      this.saveTasks();
+      this._onTasksChanged.fire();
+    }
   }
 
   private generateId(): string {
