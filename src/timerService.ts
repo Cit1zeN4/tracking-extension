@@ -13,12 +13,15 @@ export interface TimerState {
   isRunning: boolean;
   currentEntry?: TimeEntry;
   elapsedTime: number;
+  pausedTime: number; // Time elapsed when paused
+  resumeTime?: number; // Time when timer was resumed (timestamp)
 }
 
 export class TimerService {
   private state: TimerState = {
     isRunning: false,
     elapsedTime: 0,
+    pausedTime: 0,
   };
 
   private completedEntries: TimeEntry[] = [];
@@ -50,6 +53,8 @@ export class TimerService {
       isRunning: true,
       currentEntry: entry,
       elapsedTime: 0,
+      pausedTime: 0,
+      resumeTime: Date.now(),
     };
 
     this.startInterval();
@@ -58,12 +63,24 @@ export class TimerService {
   }
 
   stopTimer(): TimeEntry | undefined {
-    if (!this.state.isRunning || !this.state.currentEntry) {
+    if (!this.state.currentEntry) {
       return undefined;
     }
 
     const endTime = new Date();
-    const duration = endTime.getTime() - this.state.currentEntry.startTime.getTime();
+
+    // Calculate duration based on timer state
+    let duration: number;
+    if (this.state.isRunning && this.state.resumeTime) {
+      // Timer is currently running (was resumed)
+      duration = this.state.pausedTime + (endTime.getTime() - this.state.resumeTime);
+    } else if (!this.state.isRunning && this.state.pausedTime > 0) {
+      // Timer is paused
+      duration = this.state.pausedTime;
+    } else {
+      // Timer was never paused (running continuously)
+      duration = endTime.getTime() - this.state.currentEntry.startTime.getTime();
+    }
 
     const completedEntry: TimeEntry = {
       ...this.state.currentEntry,
@@ -76,6 +93,7 @@ export class TimerService {
     this.state = {
       isRunning: false,
       elapsedTime: 0,
+      pausedTime: 0,
     };
 
     this.stopInterval();
@@ -90,7 +108,10 @@ export class TimerService {
       return;
     }
 
+    // Store the current elapsed time as paused time
+    this.state.pausedTime = this.state.elapsedTime;
     this.state.isRunning = false;
+    this.state.resumeTime = undefined; // Clear resume time when pausing
     this.stopInterval();
     this.saveState();
     this._onStateChanged.fire();
@@ -101,6 +122,8 @@ export class TimerService {
       return;
     }
 
+    // Set resume time to current time
+    this.state.resumeTime = Date.now();
     this.state.isRunning = true;
     this.startInterval();
     this.saveState();
@@ -126,8 +149,8 @@ export class TimerService {
 
   private startInterval(): void {
     this.intervalId = setInterval(() => {
-      if (this.state.currentEntry) {
-        this.state.elapsedTime = Date.now() - this.state.currentEntry.startTime.getTime();
+      if (this.state.isRunning && this.state.currentEntry && this.state.resumeTime) {
+        this.state.elapsedTime = this.state.pausedTime + (Date.now() - this.state.resumeTime);
       }
     }, 1000);
   }

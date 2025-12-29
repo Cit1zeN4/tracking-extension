@@ -132,4 +132,56 @@ suite('Extension Test Suite', () => {
     // Clean up
     freshTimerService.stopTimer();
   });
+
+  test('Stop timer after pause records correct duration', async function () {
+    // Create fresh instance for this test
+    const mockStorage = new Map<string, any>();
+    const context = {
+      workspaceState: {
+        get: (key: string) => mockStorage.get(key),
+        update: (key: string, value: any) => mockStorage.set(key, value),
+      },
+      globalState: {
+        get: (key: string) => mockStorage.get(key),
+        update: (key: string, value: any) => mockStorage.set(key, value),
+      },
+    } as any;
+    const freshTimerService = new (require('../../timerService').TimerService)(context);
+
+    // Start timer
+    freshTimerService.startTimer();
+    const startState = freshTimerService.getState();
+    assert.equal(startState.isRunning, true);
+
+    // Wait for timer to run for a bit
+    await new Promise((resolve) => setTimeout(resolve, 1100));
+    const runningState = freshTimerService.getState();
+    assert.ok(runningState.elapsedTime > 0, 'Elapsed time should increase when running');
+    const timeBeforePause = runningState.elapsedTime;
+
+    // Pause timer
+    freshTimerService.pauseTimer();
+    const pausedState = freshTimerService.getState();
+    assert.equal(pausedState.isRunning, false);
+    assert.equal(pausedState.elapsedTime, timeBeforePause);
+
+    // Wait again - time should NOT increase during pause
+    await new Promise((resolve) => setTimeout(resolve, 1100));
+    const stillPausedState = freshTimerService.getState();
+    assert.equal(stillPausedState.elapsedTime, timeBeforePause, 'Elapsed time should not increase during pause');
+
+    // Stop timer after pause
+    const stoppedEntry = freshTimerService.stopTimer();
+    assert.ok(stoppedEntry, 'Should return completed entry');
+    assert.equal(
+      stoppedEntry!.duration,
+      timeBeforePause,
+      'Duration should equal time before pause, not include wait time after pause'
+    );
+
+    // Verify final state
+    const finalState = freshTimerService.getState();
+    assert.equal(finalState.isRunning, false);
+    assert.equal(finalState.elapsedTime, 0);
+  });
 });

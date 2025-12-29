@@ -54,6 +54,16 @@ export function activate(context: vscode.ExtensionContext) {
   // Register commands
   const startTimerCommand = vscode.commands.registerCommand('tracking-extension.startTimer', async () => {
     try {
+      const state = timerService.getState();
+
+      // If timer is paused (not running but has current entry), resume it
+      if (!state.isRunning && state.currentEntry) {
+        timerService.resumeTimer();
+        vscode.window.showInformationMessage('Timer resumed!');
+        return;
+      }
+
+      // Otherwise start a new timer
       const task = await selectTask();
       timerService.startTimer(task?.id);
       vscode.window.showInformationMessage(`Timer started${task ? ` for task: ${task.title}` : ''}!`);
@@ -149,6 +159,7 @@ function updateStatusBar() {
   const taskName = task ? (task.title.length > 80 ? task.title.substring(0, 77) + '...' : task.title) : '';
 
   if (state.isRunning) {
+    // Timer is running
     const elapsed = Math.floor(state.elapsedTime / 1000);
     const minutes = Math.floor(elapsed / 60);
     const seconds = elapsed % 60;
@@ -162,11 +173,29 @@ function updateStatusBar() {
     statusBarStartButton.hide();
     statusBarPauseButton.show();
     statusBarStopButton.show();
+  } else if (currentEntry) {
+    // Timer is paused (not running but has current entry)
+    const elapsed = Math.floor(state.elapsedTime / 1000);
+    const minutes = Math.floor(elapsed / 60);
+    const seconds = elapsed % 60;
+    const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    statusBarTaskDisplay.text = taskName ? `$(debug-pause) ${taskName} - ${timeStr}` : `$(debug-pause) ${timeStr}`;
+    statusBarTaskDisplay.tooltip = task
+      ? `Timer paused for: ${task.title} - Click to resume`
+      : 'Timer paused - Click to resume';
+
+    // Show start (as resume) and stop, hide pause
+    statusBarStartButton.show();
+    statusBarStartButton.text = '$(play)';
+    statusBarStartButton.tooltip = 'Resume Timer';
+    statusBarPauseButton.hide();
+    statusBarStopButton.show();
   } else {
+    // Timer is stopped (not running and no current entry)
     statusBarTaskDisplay.text = '$(play) Start Timer';
     statusBarTaskDisplay.tooltip = 'Click to start timer';
 
-    // Hide all buttons when timer is not running
+    // Hide all buttons - only task display is visible
     statusBarStartButton.hide();
     statusBarPauseButton.hide();
     statusBarStopButton.hide();

@@ -16,21 +16,28 @@
    - Test resume functionality from paused state
    - Confirm stop clears currentEntry properly
 
-4. **Update status bar display text**
+4. **Fix elapsed time calculation during pause**
+   - Modify TimerState to include pausedTime field
+   - Update pauseTimer() to store current elapsed time
+   - Modify resumeTimer() to adjust start time for correct continuation
+   - Ensure startInterval() only updates elapsed time when running
+
+5. **Update status bar display text**
    - Show task name only (no time) when paused
    - Update tooltips for paused state
    - Ensure proper text for all three states
 
-5. **Add tests for paused state**
+6. **Add tests for paused state**
    - Test status bar display during pause
    - Verify button visibility in paused state
    - Test resume from paused state
+   - Test elapsed time preservation during pause
 
-6. **Update documentation**
+7. **Update documentation**
    - Update README with pause behavior description
    - Ensure user expectations are clear
 
-7. **Integration testing**
+8. **Integration testing**
    - Test full pause/resume workflow
    - Verify status bar updates correctly
    - Test edge cases (pause when no timer, etc.)

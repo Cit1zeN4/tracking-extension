@@ -44,6 +44,10 @@ if (state.isRunning) {
 - Ensure `pauseTimer()` maintains `currentEntry`
 - Ensure `startTimer()` can resume from paused state
 - Preserve elapsed time across pause/resume
+- Add `pausedTime` field to `TimerState` interface
+- Modify `pauseTimer()` to store current elapsed time in `pausedTime`
+- Modify `resumeTimer()` to adjust `currentEntry.startTime` for correct continuation
+- Update `startInterval()` to only update elapsed time when `isRunning` is true
 
 ### Status Bar Updates
 

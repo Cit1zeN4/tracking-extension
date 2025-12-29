@@ -99,7 +99,7 @@ Then relevant functionality (such as settings or logs) is available
 
 ### Requirement: Status Bar Timer Controls
 
-The system SHALL provide interactive buttons in the status bar for timer operations (start, pause, stop).
+The system SHALL provide interactive buttons in the status bar for timer operations (start, pause, stop) with proper state management for running, paused, and stopped states.
 
 #### Scenario: Start Button Availability
 
@@ -113,9 +113,13 @@ Given a timer is running
 When user views status bar
 Then pause button is visible and enabled
 
-Given no timer is running
+Given a timer is paused
 When user views status bar
-Then pause button is visible but disabled
+Then pause button is hidden
+
+Given no timer is running or stopped
+When user views status bar
+Then pause button is hidden
 
 #### Scenario: Stop Button State
 
@@ -125,7 +129,15 @@ Then stop button is visible and enabled
 
 Given no timer is running
 When user views status bar
-Then stop button is visible but disabled
+Then stop button is hidden
+
+#### Scenario: Paused State Display
+
+Given a timer is paused
+When user views status bar
+Then current task name is displayed without elapsed time
+And start and stop buttons are visible
+And pause button is hidden
 
 #### Scenario: Button Interaction
 
