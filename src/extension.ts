@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { TimerService } from './timerService';
 import { TaskService, Task } from './taskService';
 import { SidebarProvider } from './sidebarProvider';
+import { TaskDetailsProvider } from './taskDetailsProvider';
 
 let timerService: TimerService;
 let taskService: TaskService;
@@ -19,6 +20,9 @@ export function activate(context: vscode.ExtensionContext) {
   // Register sidebar
   const sidebarProvider = new SidebarProvider(timerService, taskService);
   context.subscriptions.push(vscode.window.registerTreeDataProvider(SidebarProvider.viewType, sidebarProvider));
+
+  // Create task details provider
+  const taskDetailsProvider = new TaskDetailsProvider(context, taskService, timerService);
 
   // Create status bar items
   statusBarTaskDisplay = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
@@ -156,6 +160,33 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.executeCommand('workbench.view.extension.tracking-extension.sidebar');
   });
 
+  const viewTaskDetailsCommand = vscode.commands.registerCommand(
+    'tracking-extension.viewTaskDetails',
+    async (arg?: string | vscode.TreeItem) => {
+      let taskId: string | undefined;
+
+      // Check if arg is a task ID string or tree item
+      if (typeof arg === 'string') {
+        taskId = arg;
+      } else if (arg && typeof arg === 'object' && 'id' in arg && arg.id?.startsWith('task-')) {
+        // Tree item with task ID in format "task-{taskId}"
+        taskId = arg.id.substring(5); // Remove "task-" prefix
+      }
+
+      // If no taskId provided, ask user to select a task
+      if (!taskId) {
+        const task = await selectTask();
+        taskId = task?.id;
+      }
+
+      if (taskId) {
+        taskDetailsProvider.showTaskDetails(taskId);
+      } else {
+        vscode.window.showErrorMessage('No task selected');
+      }
+    }
+  );
+
   // Add to subscriptions for proper disposal
   context.subscriptions.push(
     startTimerCommand,
@@ -164,7 +195,8 @@ export function activate(context: vscode.ExtensionContext) {
     createTaskCommand,
     viewLogsCommand,
     viewTasksCommand,
-    openSidebarCommand
+    openSidebarCommand,
+    viewTaskDetailsCommand
   );
 }
 

@@ -45,6 +45,10 @@
         "title": "View Tasks"
       },
       {
+        "command": "tracking-extension.viewTaskDetails",
+        "title": "View Task Details"
+      },
+      {
         "command": "tracking-extension.openSidebar",
         "title": "Open Time Tracking Sidebar"
       }
@@ -106,6 +110,12 @@
           "when": "view == tracking-extension.sidebar && viewItem =~ /task-(running|paused)/",
           "title": "Stop Task",
           "group": "inline"
+        },
+        {
+          "command": "tracking-extension.viewTaskDetails",
+          "when": "view == tracking-extension.sidebar && viewItem =~ /task-.*/",
+          "title": "View Details",
+          "group": "7_modification"
         }
       ]
     }

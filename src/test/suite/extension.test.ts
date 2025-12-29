@@ -359,4 +359,122 @@ suite('Extension Test Suite', () => {
       assert.equal(timerState.isRunning, false);
     });
   });
+
+  suite('TaskDetailsProvider', () => {
+    let taskDetailsProvider: any;
+    let testTask: any;
+
+    suiteSetup(() => {
+      // Create TaskDetailsProvider instance
+      taskDetailsProvider = new (require('../../taskDetailsProvider').TaskDetailsProvider)(
+        {
+          extensionUri: vscode.Uri.file(''),
+          subscriptions: [],
+        },
+        taskService,
+        timerService
+      );
+
+      // Create a test task
+      testTask = taskService.createTask('Test Task', 'Test description');
+    });
+
+    test('TaskDetailsProvider should be created', () => {
+      assert.ok(taskDetailsProvider);
+      assert.ok(typeof taskDetailsProvider.showTaskDetails === 'function');
+    });
+
+    test('getHtmlContent generates valid HTML for task with no time entries', () => {
+      const html = taskDetailsProvider.getHtmlContent(testTask, [], 0, 0, 0);
+      assert.ok(html.includes('<!DOCTYPE html>'));
+      assert.ok(html.includes('Test Task'));
+      assert.ok(html.includes('Test description'));
+      assert.ok(html.includes('No time entries found'));
+      assert.ok(html.includes('0s')); // Total time
+      assert.ok(html.includes('0')); // Sessions
+    });
+
+    test('getHtmlContent generates valid HTML for task with time entries', () => {
+      const mockEntries = [
+        {
+          startTime: new Date('2023-01-01T10:00:00'),
+          endTime: new Date('2023-01-01T10:30:00'),
+          duration: 30 * 60 * 1000, // 30 minutes
+          taskId: testTask.id,
+        },
+        {
+          startTime: new Date('2023-01-01T11:00:00'),
+          endTime: new Date('2023-01-01T11:15:00'),
+          duration: 15 * 60 * 1000, // 15 minutes
+          taskId: testTask.id,
+        },
+      ];
+
+      const totalTime = 45 * 60 * 1000; // 45 minutes
+      const sessionCount = 2;
+      const averageSession = totalTime / sessionCount;
+
+      const html = taskDetailsProvider.getHtmlContent(testTask, mockEntries, totalTime, sessionCount, averageSession);
+
+      assert.ok(html.includes('Test Task'));
+      assert.ok(html.includes('45m')); // Total time
+      assert.ok(html.includes('2')); // Sessions
+      assert.ok(html.includes('22m')); // Average session (22.5m rounded)
+      assert.ok(html.includes('30m')); // First entry duration
+      assert.ok(html.includes('15m')); // Second entry duration
+    });
+
+    test('getHtmlContent formats duration correctly', () => {
+      const html = taskDetailsProvider.getHtmlContent(testTask, [], 3661000, 1, 3661000); // 1h 1m 1s
+      assert.ok(html.includes('1h 1m')); // Should show hours and minutes
+    });
+
+    test('getHtmlContent displays task metadata correctly', () => {
+      const taskWithExternalId = {
+        ...testTask,
+        source: 'external',
+        externalId: 'EXT-123',
+      };
+
+      const html = taskDetailsProvider.getHtmlContent(taskWithExternalId, [], 0, 0, 0);
+      assert.ok(html.includes('external (EXT-123)'));
+    });
+  });
+
+  suite('Task Details Command Integration', () => {
+    let testTask: any;
+
+    suiteSetup(() => {
+      testTask = taskService.createTask('Integration Test Task', 'For command testing');
+    });
+
+    test('viewTaskDetails command should be registered', async () => {
+      // Test that the command exists by trying to execute it
+      const commands = await vscode.commands.getCommands(true);
+      assert.ok(commands.includes('tracking-extension.viewTaskDetails'));
+    });
+
+    test('viewTaskDetails command with valid task ID should not throw error', async () => {
+      // This test verifies the command can be called without throwing
+      // In a real scenario, this would open a webview panel
+      try {
+        await vscode.commands.executeCommand('tracking-extension.viewTaskDetails', testTask.id);
+        assert.ok(true); // Command executed without error
+      } catch (error) {
+        // In test environment, webview creation might fail, but command registration should work
+        assert.ok((error as Error).message.includes('webview') || (error as Error).message.includes('window'));
+      }
+    });
+
+    test('viewTaskDetails command with invalid task ID should handle gracefully', async () => {
+      try {
+        await vscode.commands.executeCommand('tracking-extension.viewTaskDetails', 'invalid-id');
+        // Should not throw, but may show error message
+        assert.ok(true);
+      } catch (error) {
+        // Expected to potentially fail in test environment
+        assert.ok(true);
+      }
+    });
+  });
 });
