@@ -1,8 +1,11 @@
 # task-association Specification
 
 ## Purpose
+
 TBD - created by archiving change init-project. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Task Creation
 
 The system SHALL allow users to create manual tasks for time tracking.
@@ -42,4 +45,3 @@ Time tracking SHALL work without requiring task association.
 Given no tasks exist
 When user starts a timer
 Then timer runs normally without task association
-

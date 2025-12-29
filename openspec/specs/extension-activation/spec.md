@@ -1,8 +1,11 @@
 # extension-activation Specification
 
 ## Purpose
+
 TBD - created by archiving change init-project. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Extension Activation
 
 The extension SHALL activate when VS Code starts up finished to ensure immediate availability.
@@ -32,4 +35,3 @@ The extension SHALL properly manage disposable resources to prevent memory leaks
 Given the extension is running
 When VS Code shuts down
 Then all resources are disposed without errors
-

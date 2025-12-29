@@ -25,7 +25,7 @@ suite('Extension Test Suite', () => {
 
     // Create services directly for testing
     timerService = new (require('../../timerService').TimerService)(context);
-    taskService = new (require('../../taskService').TaskService)(context);
+    taskService = new (require('../../taskService').TaskService)(context, timerService);
   });
 
   test('Services should be created', () => {
@@ -497,16 +497,18 @@ suite('Extension Test Suite', () => {
       timerService.startTimer(task.id);
       timerService.stopTimer();
 
-      // Verify task and entries exist
-      assert.equal(taskService.getTasks().length, 1);
-      assert.equal(timerService.getCompletedEntries().filter((e: any) => e.taskId === task.id).length, 2);
+      // Verify task and entries exist (3 tasks: TaskDetailsProvider + suiteSetup + this test)
+      assert.equal(taskService.getTasks().length, 3);
+      const entriesBefore = timerService.getCompletedEntries().filter((e: any) => e.taskId === task.id);
+      assert.equal(entriesBefore.length, 2);
 
       // Delete task
       taskService.deleteTask(task.id);
 
-      // Verify task and entries are removed
-      assert.equal(taskService.getTasks().length, 0);
-      assert.equal(timerService.getCompletedEntries().filter((e: any) => e.taskId === task.id).length, 0);
+      // Verify task and entries are removed (2 tasks remaining: TaskDetailsProvider + suiteSetup)
+      assert.equal(taskService.getTasks().length, 2);
+      const entriesAfter = timerService.getCompletedEntries().filter((e: any) => e.taskId === task.id);
+      assert.equal(entriesAfter.length, 0);
     });
 
     test('TaskService updateTask should modify task properties', () => {

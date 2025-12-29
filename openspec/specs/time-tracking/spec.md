@@ -1,8 +1,11 @@
 # time-tracking Specification
 
 ## Purpose
+
 TBD - created by archiving change init-project. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Start Timer
 
 The system SHALL allow users to start a time tracking session.
@@ -51,4 +54,3 @@ Timer state SHALL persist across VS Code sessions.
 Given a timer is running
 When VS Code is restarted
 Then timer state is restored on next activation
-
