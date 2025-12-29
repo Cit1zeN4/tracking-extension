@@ -14,7 +14,7 @@ export function activate(context: vscode.ExtensionContext) {
   console.log('Time Tracking Extension activated');
 
   timerService = new TimerService(context);
-  taskService = new TaskService(context);
+  taskService = new TaskService(context, timerService);
 
   // Register sidebar
   const sidebarProvider = new SidebarProvider(timerService, taskService);
@@ -52,25 +52,43 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push({ dispose: () => clearInterval(statusBarUpdater) });
 
   // Register commands
-  const startTimerCommand = vscode.commands.registerCommand('tracking-extension.startTimer', async () => {
-    try {
-      const state = timerService.getState();
+  const startTimerCommand = vscode.commands.registerCommand(
+    'tracking-extension.startTimer',
+    async (arg?: string | vscode.TreeItem) => {
+      try {
+        const state = timerService.getState();
 
-      // If timer is paused (not running but has current entry), resume it
-      if (!state.isRunning && state.currentEntry) {
-        timerService.resumeTimer();
-        vscode.window.showInformationMessage('Timer resumed!');
-        return;
+        // If timer is paused (not running but has current entry), resume it
+        if (!state.isRunning && state.currentEntry) {
+          timerService.resumeTimer();
+          vscode.window.showInformationMessage('Timer resumed!');
+          return;
+        }
+
+        // Check if arg is a task ID string, tree item, or undefined
+        let taskId: string | undefined;
+        if (typeof arg === 'string') {
+          taskId = arg;
+        } else if (arg && typeof arg === 'object' && 'id' in arg && arg.id?.startsWith('task-')) {
+          // Tree item with task ID in format "task-{taskId}"
+          taskId = arg.id.substring(5); // Remove "task-" prefix
+        }
+
+        // If taskId is provided, use it; otherwise select a task
+        let task: Task | undefined;
+        if (taskId) {
+          task = taskService.getTaskById(taskId);
+        } else {
+          task = await selectTask();
+        }
+
+        timerService.startTimer(task?.id);
+        vscode.window.showInformationMessage(`Timer started${task ? ` for task: ${task.title}` : ''}!`);
+      } catch (error) {
+        vscode.window.showErrorMessage(`Failed to start timer: ${error}`);
       }
-
-      // Otherwise start a new timer
-      const task = await selectTask();
-      timerService.startTimer(task?.id);
-      vscode.window.showInformationMessage(`Timer started${task ? ` for task: ${task.title}` : ''}!`);
-    } catch (error) {
-      vscode.window.showErrorMessage(`Failed to start timer: ${error}`);
     }
-  });
+  );
 
   const stopTimerCommand = vscode.commands.registerCommand('tracking-extension.stopTimer', () => {
     const entry = timerService.stopTimer();

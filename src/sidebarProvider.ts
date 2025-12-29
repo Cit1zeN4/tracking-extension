@@ -2,6 +2,13 @@ import * as vscode from 'vscode';
 import { TimerService } from './timerService';
 import { TaskService, Task } from './taskService';
 
+function formatDuration(milliseconds: number): string {
+  const totalSeconds = Math.floor(milliseconds / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
 export class SidebarProvider implements vscode.TreeDataProvider<TreeItem> {
   public static readonly viewType = 'tracking-extension.sidebar';
 
@@ -38,7 +45,7 @@ export class SidebarProvider implements vscode.TreeDataProvider<TreeItem> {
 
     if (element instanceof TasksSectionItem) {
       const tasks = this.taskService.getTasks();
-      return Promise.resolve(tasks.map((task) => new TaskItem(task)));
+      return Promise.resolve(tasks.map((task) => new TaskItem(task, this.taskService, this.timerService)));
     }
 
     return Promise.resolve([]);
@@ -67,11 +74,35 @@ class TasksSectionItem extends TreeItem {
 }
 
 class TaskItem extends TreeItem {
-  constructor(private task: Task) {
-    super(task.title);
+  constructor(
+    private task: Task,
+    private taskService: TaskService,
+    private timerService: TimerService
+  ) {
+    const timeSpent = taskService.getTotalTimeSpent(task.id);
+    const timeDisplay = timeSpent > 0 ? formatDuration(timeSpent) : '';
+    const label = timeDisplay ? `${task.title} (${timeDisplay})` : task.title;
+
+    super(label);
+    this.id = `task-${task.id}`; // Set unique ID for the tree item
     this.iconPath = new vscode.ThemeIcon('tasklist');
-    this.tooltip = task.description || '';
-    this.contextValue = 'task';
+    this.tooltip = task.description
+      ? `${task.description}\nTime spent: ${timeDisplay || '0:00'}`
+      : `Time spent: ${timeDisplay || '0:00'}`;
+    this.contextValue = this.getContextValue();
+  }
+
+  private getContextValue(): string {
+    const timerState = this.timerService.getState();
+    const isCurrentTask = timerState.currentEntry?.taskId === this.task.id;
+
+    if (isCurrentTask) {
+      return timerState.isRunning ? 'task-running' : 'task-paused';
+    } else if (!timerState.isRunning) {
+      return 'task-stopped';
+    } else {
+      return 'task-other-running';
+    }
   }
 }
 

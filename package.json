@@ -82,6 +82,30 @@
           "command": "tracking-extension.pauseTimer",
           "when": "view == tracking-extension.sidebar && viewItem == timer",
           "group": "inline"
+        },
+        {
+          "command": "tracking-extension.startTimer",
+          "when": "view == tracking-extension.sidebar && viewItem =~ /task-(stopped|other-running)/",
+          "title": "Start Task",
+          "group": "inline"
+        },
+        {
+          "command": "tracking-extension.startTimer",
+          "when": "view == tracking-extension.sidebar && viewItem == task-paused",
+          "title": "Resume Task",
+          "group": "inline"
+        },
+        {
+          "command": "tracking-extension.pauseTimer",
+          "when": "view == tracking-extension.sidebar && viewItem == task-running",
+          "title": "Pause Task",
+          "group": "inline"
+        },
+        {
+          "command": "tracking-extension.stopTimer",
+          "when": "view == tracking-extension.sidebar && viewItem =~ /task-(running|paused)/",
+          "title": "Stop Task",
+          "group": "inline"
         }
       ]
     }

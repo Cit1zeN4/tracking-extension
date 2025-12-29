@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { TimerService } from './timerService';
 
 export interface Task {
   id: string;
@@ -12,11 +13,13 @@ export interface Task {
 export class TaskService {
   private tasks: Task[] = [];
   private context: vscode.ExtensionContext;
+  private timerService: TimerService;
   private _onTasksChanged = new vscode.EventEmitter<void>();
   public readonly onTasksChanged = this._onTasksChanged.event;
 
-  constructor(context: vscode.ExtensionContext) {
+  constructor(context: vscode.ExtensionContext, timerService?: TimerService) {
     this.context = context;
+    this.timerService = timerService!;
     this.loadTasks();
   }
 
@@ -57,6 +60,16 @@ export class TaskService {
       this.saveTasks();
       this._onTasksChanged.fire();
     }
+  }
+
+  getTotalTimeSpent(taskId: string): number {
+    if (!this.timerService) {
+      return 0;
+    }
+    return this.timerService
+      .getCompletedEntries()
+      .filter((entry) => entry.taskId === taskId)
+      .reduce((total, entry) => total + entry.duration, 0);
   }
 
   private generateId(): string {
