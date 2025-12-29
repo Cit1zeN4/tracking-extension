@@ -33,8 +33,9 @@ export class TimerService {
   }
 
   startTimer(taskId?: string, description?: string): void {
+    // Stop current timer if running
     if (this.state.isRunning) {
-      throw new Error('Timer is already running');
+      this.stopTimer();
     }
 
     const entry: TimeEntry = {
@@ -150,18 +151,31 @@ export class TimerService {
 
   private loadState(): void {
     // Load from workspace state
-    const savedState = this.context.workspaceState.get('timerState') as TimerState;
+    const savedState = this.context.workspaceState.get('timerState') as any;
     if (savedState) {
       this.state = savedState;
+      // Convert date strings back to Date objects
+      if (this.state.currentEntry) {
+        if (typeof this.state.currentEntry.startTime === 'string') {
+          this.state.currentEntry.startTime = new Date(this.state.currentEntry.startTime);
+        }
+        if (this.state.currentEntry.endTime && typeof this.state.currentEntry.endTime === 'string') {
+          this.state.currentEntry.endTime = new Date(this.state.currentEntry.endTime);
+        }
+      }
       // If timer was running, resume it
       if (this.state.isRunning && this.state.currentEntry) {
         this.startInterval();
       }
     }
 
-    const savedEntries = this.context.workspaceState.get('completedEntries') as TimeEntry[];
+    const savedEntries = this.context.workspaceState.get('completedEntries') as any[];
     if (savedEntries) {
-      this.completedEntries = savedEntries;
+      this.completedEntries = savedEntries.map((entry) => ({
+        ...entry,
+        startTime: typeof entry.startTime === 'string' ? new Date(entry.startTime) : entry.startTime,
+        endTime: entry.endTime && typeof entry.endTime === 'string' ? new Date(entry.endTime) : entry.endTime,
+      }));
     }
   }
 }

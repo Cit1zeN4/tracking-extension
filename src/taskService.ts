@@ -70,9 +70,12 @@ export class TaskService {
 
   private loadTasks(): void {
     // Load from global state
-    const savedTasks = this.context.globalState.get('tasks') as Task[];
+    const savedTasks = this.context.globalState.get('tasks') as any[];
     if (savedTasks) {
-      this.tasks = savedTasks;
+      this.tasks = savedTasks.map((task) => ({
+        ...task,
+        createdAt: typeof task.createdAt === 'string' ? new Date(task.createdAt) : task.createdAt,
+      }));
     }
   }
 }

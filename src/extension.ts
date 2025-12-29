@@ -5,7 +5,10 @@ import { SidebarProvider } from './sidebarProvider';
 
 let timerService: TimerService;
 let taskService: TaskService;
-let statusBarItem: vscode.StatusBarItem;
+let statusBarTaskDisplay: vscode.StatusBarItem;
+let statusBarStartButton: vscode.StatusBarItem;
+let statusBarPauseButton: vscode.StatusBarItem;
+let statusBarStopButton: vscode.StatusBarItem;
 
 export function activate(context: vscode.ExtensionContext) {
   console.log('Time Tracking Extension activated');
@@ -17,12 +20,32 @@ export function activate(context: vscode.ExtensionContext) {
   const sidebarProvider = new SidebarProvider(timerService, taskService);
   context.subscriptions.push(vscode.window.registerTreeDataProvider(SidebarProvider.viewType, sidebarProvider));
 
-  // Create status bar item
-  statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
-  statusBarItem.command = 'tracking-extension.startTimer';
+  // Create status bar items
+  statusBarTaskDisplay = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
+  statusBarTaskDisplay.command = 'tracking-extension.startTimer';
+
+  statusBarStartButton = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 99);
+  statusBarStartButton.command = 'tracking-extension.startTimer';
+  statusBarStartButton.text = '$(play)';
+  statusBarStartButton.tooltip = 'Start Timer';
+
+  statusBarPauseButton = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 98);
+  statusBarPauseButton.command = 'tracking-extension.pauseTimer';
+  statusBarPauseButton.text = '$(debug-pause)';
+  statusBarPauseButton.tooltip = 'Pause Timer';
+
+  statusBarStopButton = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 97);
+  statusBarStopButton.command = 'tracking-extension.stopTimer';
+  statusBarStopButton.text = '$(stop)';
+  statusBarStopButton.tooltip = 'Stop Timer';
+
   updateStatusBar();
-  statusBarItem.show();
-  context.subscriptions.push(statusBarItem);
+
+  // Show initial state - only task display is visible when no timer is running
+  statusBarTaskDisplay.show();
+  // All buttons are hidden initially by updateStatusBar()
+
+  context.subscriptions.push(statusBarTaskDisplay, statusBarStartButton, statusBarPauseButton, statusBarStopButton);
 
   // Update status bar every second
   const statusBarUpdater = setInterval(updateStatusBar, 1000);
@@ -118,18 +141,35 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 function updateStatusBar() {
-  if (!statusBarItem || !timerService) return;
+  if (!statusBarTaskDisplay || !timerService || !taskService) return;
 
   const state = timerService.getState();
+  const currentEntry = state.currentEntry;
+  const task = currentEntry?.taskId ? taskService.getTaskById(currentEntry.taskId) : null;
+  const taskName = task ? (task.title.length > 80 ? task.title.substring(0, 77) + '...' : task.title) : '';
+
   if (state.isRunning) {
     const elapsed = Math.floor(state.elapsedTime / 1000);
     const minutes = Math.floor(elapsed / 60);
     const seconds = elapsed % 60;
-    statusBarItem.text = `$(clock) ${minutes}:${seconds.toString().padStart(2, '0')}`;
-    statusBarItem.tooltip = 'Timer running - Click to start a new timer';
+    const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    statusBarTaskDisplay.text = taskName ? `$(clock) ${taskName} - ${timeStr}` : `$(clock) ${timeStr}`;
+    statusBarTaskDisplay.tooltip = task
+      ? `Timer running for: ${task.title}`
+      : 'Timer running - Click to start a new timer';
+
+    // Show pause and stop, hide start
+    statusBarStartButton.hide();
+    statusBarPauseButton.show();
+    statusBarStopButton.show();
   } else {
-    statusBarItem.text = '$(play) Start Timer';
-    statusBarItem.tooltip = 'Click to start timer';
+    statusBarTaskDisplay.text = '$(play) Start Timer';
+    statusBarTaskDisplay.tooltip = 'Click to start timer';
+
+    // Hide all buttons when timer is not running
+    statusBarStartButton.hide();
+    statusBarPauseButton.hide();
+    statusBarStopButton.hide();
   }
 }
 
