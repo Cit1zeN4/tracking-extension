@@ -476,5 +476,68 @@ suite('Extension Test Suite', () => {
         assert.ok(true);
       }
     });
+
+    test('deleteTask command should be registered', async () => {
+      const commands = await vscode.commands.getCommands(true);
+      assert.ok(commands.includes('tracking-extension.deleteTask'));
+    });
+
+    test('editTask command should be registered', async () => {
+      const commands = await vscode.commands.getCommands(true);
+      assert.ok(commands.includes('tracking-extension.editTask'));
+    });
+
+    test('TaskService deleteTask should remove task and associated timer entries', () => {
+      // Create a task
+      const task = taskService.createTask('Test Task for Deletion', 'Description');
+
+      // Add some timer entries for this task
+      timerService.startTimer(task.id);
+      timerService.stopTimer();
+      timerService.startTimer(task.id);
+      timerService.stopTimer();
+
+      // Verify task and entries exist
+      assert.equal(taskService.getTasks().length, 1);
+      assert.equal(timerService.getCompletedEntries().filter((e: any) => e.taskId === task.id).length, 2);
+
+      // Delete task
+      taskService.deleteTask(task.id);
+
+      // Verify task and entries are removed
+      assert.equal(taskService.getTasks().length, 0);
+      assert.equal(timerService.getCompletedEntries().filter((e: any) => e.taskId === task.id).length, 0);
+    });
+
+    test('TaskService updateTask should modify task properties', () => {
+      // Create a task
+      const task = taskService.createTask('Original Title', 'Original Description');
+
+      // Update task
+      taskService.updateTask(task.id, 'Updated Title', 'Updated Description');
+
+      // Verify changes
+      const updatedTask = taskService.getTaskById(task.id);
+      assert.equal(updatedTask?.title, 'Updated Title');
+      assert.equal(updatedTask?.description, 'Updated Description');
+      assert.equal(updatedTask?.id, task.id); // ID should remain the same
+    });
+
+    test('TaskService updateTask should preserve task ID and other properties', () => {
+      // Create a task
+      const task = taskService.createTask('Test Task', 'Test Description');
+      const originalId = task.id;
+      const originalCreatedAt = task.createdAt;
+
+      // Update only title
+      taskService.updateTask(task.id, 'New Title');
+
+      // Verify ID and createdAt are preserved
+      const updatedTask = taskService.getTaskById(task.id);
+      assert.equal(updatedTask?.id, originalId);
+      assert.equal(updatedTask?.createdAt.getTime(), originalCreatedAt.getTime());
+      assert.equal(updatedTask?.title, 'New Title');
+      assert.equal(updatedTask?.description, 'Test Description'); // Should remain unchanged
+    });
   });
 });

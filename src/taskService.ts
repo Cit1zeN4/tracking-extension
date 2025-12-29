@@ -48,6 +48,10 @@ export class TaskService {
 
   deleteTask(id: string): void {
     this.tasks = this.tasks.filter((task) => task.id !== id);
+    // Also delete all timer entries associated with this task
+    if (this.timerService) {
+      this.timerService.deleteEntriesByTaskId(id);
+    }
     this.saveTasks();
     this._onTasksChanged.fire();
   }

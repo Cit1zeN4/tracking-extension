@@ -49,6 +49,16 @@
         "title": "View Task Details"
       },
       {
+        "command": "tracking-extension.deleteTask",
+        "title": "Delete Task",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "tracking-extension.editTask",
+        "title": "Edit Task",
+        "icon": "$(edit)"
+      },
+      {
         "command": "tracking-extension.openSidebar",
         "title": "Open Time Tracking Sidebar"
       }
@@ -115,6 +125,18 @@
           "command": "tracking-extension.viewTaskDetails",
           "when": "view == tracking-extension.sidebar && viewItem =~ /task-.*/",
           "title": "View Details",
+          "group": "7_modification"
+        },
+        {
+          "command": "tracking-extension.editTask",
+          "when": "view == tracking-extension.sidebar && viewItem =~ /task-.*/",
+          "title": "Edit Task",
+          "group": "7_modification"
+        },
+        {
+          "command": "tracking-extension.deleteTask",
+          "when": "view == tracking-extension.sidebar && viewItem =~ /task-.*/",
+          "title": "Delete Task",
           "group": "7_modification"
         }
       ]

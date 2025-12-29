@@ -36,16 +36,13 @@ export class SidebarProvider implements vscode.TreeDataProvider<TreeItem> {
   getChildren(element?: TreeItem): Thenable<TreeItem[]> {
     if (!element) {
       // Root level
-      return Promise.resolve([new TimerSectionItem(), new TasksSectionItem()]);
-    }
-
-    if (element instanceof TimerSectionItem) {
-      return Promise.resolve([...this.timerService.getCompletedEntries().map((log) => new LogItem(log))]);
+      return Promise.resolve([new TasksSectionItem()]);
     }
 
     if (element instanceof TasksSectionItem) {
       const tasks = this.taskService.getTasks();
-      return Promise.resolve(tasks.map((task) => new TaskItem(task, this.taskService, this.timerService)));
+      const taskItems = tasks.map((task) => new TaskItem(task, this.taskService, this.timerService));
+      return Promise.resolve([new CreateTaskButton(), ...taskItems]);
     }
 
     return Promise.resolve([]);
@@ -58,18 +55,11 @@ class TreeItem extends vscode.TreeItem {
   }
 }
 
-class TimerSectionItem extends TreeItem {
-  constructor() {
-    super('Timer', vscode.TreeItemCollapsibleState.Collapsed);
-    this.iconPath = new vscode.ThemeIcon('clock');
-    this.contextValue = 'timer';
-  }
-}
-
 class TasksSectionItem extends TreeItem {
   constructor() {
     super('Tasks', vscode.TreeItemCollapsibleState.Collapsed);
     this.iconPath = new vscode.ThemeIcon('checklist');
+    this.contextValue = 'tasks-section';
   }
 }
 
@@ -106,10 +96,14 @@ class TaskItem extends TreeItem {
   }
 }
 
-class LogItem extends TreeItem {
-  constructor(private log: any) {
-    super(`Duration: ${Math.round(log.duration / 1000)}s`);
-    this.iconPath = new vscode.ThemeIcon('clock');
-    this.tooltip = `Task: ${log.taskId || 'None'}, Start: ${new Date(log.startTime).toLocaleString()}`;
+class CreateTaskButton extends TreeItem {
+  constructor() {
+    super('Create Task', vscode.TreeItemCollapsibleState.None);
+    this.iconPath = new vscode.ThemeIcon('add');
+    this.tooltip = 'Create a new task';
+    this.command = {
+      command: 'tracking-extension.createTask',
+      title: 'Create Task',
+    };
   }
 }

@@ -138,6 +138,11 @@ export class TimerService {
     return [...this.completedEntries];
   }
 
+  deleteEntriesByTaskId(taskId: string): void {
+    this.completedEntries = this.completedEntries.filter((entry) => entry.taskId !== taskId);
+    this.saveState();
+  }
+
   getStatus(): string {
     if (this.state.isRunning) {
       const minutes = Math.floor(this.state.elapsedTime / 60000);
