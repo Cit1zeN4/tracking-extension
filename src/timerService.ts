@@ -21,7 +21,7 @@ export class TimerService {
     this.loadState();
   }
 
-  startTimer(taskId?: string, description?: string): void {
+  startTimer(taskId: string, description?: string): void {
     // Stop current timer if running
     if (this.state.isRunning) {
       this.stopTimer();

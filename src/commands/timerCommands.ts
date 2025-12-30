@@ -34,8 +34,13 @@ export function registerTimerCommands(timerService: TimerService, taskService: T
           task = await selectTask(taskService);
         }
 
-        timerService.startTimer(task?.id);
-        vscode.window.showInformationMessage(`Timer started${task ? ` for task: ${task.title}` : ''}!`);
+        if (!task) {
+          vscode.window.showErrorMessage('Cannot start timer without selecting a task. Create a task first.');
+          return;
+        }
+
+        timerService.startTimer(task.id);
+        vscode.window.showInformationMessage(`Timer started for task: ${task.title}!`);
       } catch (error) {
         vscode.window.showErrorMessage(`Failed to start timer: ${error}`);
       }
@@ -62,6 +67,7 @@ export function registerTimerCommands(timerService: TimerService, taskService: T
 async function selectTask(taskService: TaskService): Promise<Task | undefined> {
   const tasks = taskService.getTasks();
   if (tasks.length === 0) {
+    vscode.window.showErrorMessage('No tasks available. Create a task first to start tracking time.');
     return undefined;
   }
 
@@ -72,7 +78,7 @@ async function selectTask(taskService: TaskService): Promise<Task | undefined> {
   }));
 
   const selected = await vscode.window.showQuickPick(items, {
-    placeHolder: 'Select a task (optional)',
+    placeHolder: 'Select a task',
   });
 
   return selected?.task;

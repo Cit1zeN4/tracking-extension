@@ -53,7 +53,7 @@ suite('Extension Test Suite', () => {
     assert.equal(initialState.isRunning, false);
 
     // Start timer
-    timerService.startTimer();
+    timerService.startTimer('test-task');
     const runningState = timerService.getState();
     assert.equal(runningState.isRunning, true);
     assert.ok(runningState.currentEntry);
@@ -117,7 +117,7 @@ suite('Extension Test Suite', () => {
     const freshTimerService = new (require('../../timerService').TimerService)(context);
 
     // Start timer
-    freshTimerService.startTimer();
+    freshTimerService.startTimer('test-task');
     let state = freshTimerService.getState();
     assert.equal(state.isRunning, true);
 
@@ -128,7 +128,7 @@ suite('Extension Test Suite', () => {
     assert.ok(state.currentEntry); // Entry should still exist
 
     // Resume timer (by starting again)
-    freshTimerService.startTimer();
+    freshTimerService.startTimer('test-task');
     state = freshTimerService.getState();
     assert.equal(state.isRunning, true);
     assert.ok(state.currentEntry);
@@ -153,7 +153,7 @@ suite('Extension Test Suite', () => {
     const freshTimerService = new (require('../../timerService').TimerService)(context);
 
     // Start timer
-    freshTimerService.startTimer();
+    freshTimerService.startTimer('test-task');
     const startState = freshTimerService.getState();
     assert.equal(startState.isRunning, true);
 
