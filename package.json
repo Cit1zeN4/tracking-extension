@@ -3,7 +3,9 @@
   "displayName": "Time Tracking Extension",
   "description": "VS Code extension for tracking time spent on tasks and projects",
   "version": "0.0.1",
-  "publisher": "your-publisher",
+  "publisher": "Cit1zeN4",
+  "repository": "https://github.com/Cit1zeN4/tracking-extension",
+  "license": "MIT",
   "engines": {
     "vscode": "^1.74.0"
   },
