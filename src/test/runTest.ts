@@ -16,7 +16,7 @@ async function main() {
     await runTests({
       extensionDevelopmentPath,
       extensionTestsPath,
-      launchArgs: ['--headless', '--disable-gpu', '--no-sandbox'],
+      launchArgs: ['--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage'],
     });
   } catch (err) {
     console.error('Failed to run tests');
