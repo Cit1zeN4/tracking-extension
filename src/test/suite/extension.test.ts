@@ -639,4 +639,625 @@ suite('Extension Test Suite', () => {
       assert.equal(workspaceTasks[0].title, 'Workspace Task');
     });
   });
+
+  // Kanban Board Tests
+  suite('Kanban Board Tests', () => {
+    let boardService: any;
+
+    suiteSetup(() => {
+      // Create mock context
+      const mockStorage = new Map<string, any>();
+      const context = {
+        extensionUri: vscode.Uri.file(''),
+        subscriptions: [],
+        workspaceState: {
+          get: (key: string) => mockStorage.get(key),
+          update: (key: string, value: any) => mockStorage.set(key, value),
+        },
+        globalState: {
+          get: (key: string) => mockStorage.get(key),
+          update: (key: string, value: any) => mockStorage.set(key, value),
+        },
+      } as any;
+
+      // Create kanban services
+      boardService = new (require('../../boardService').BoardService)(context, StorageScope.Global);
+    });
+
+    test('BoardService should be created', () => {
+      assert.ok(boardService);
+    });
+
+    test('BoardService createBoard creates board with correct properties', () => {
+      const board = boardService.createBoard('Test Board', 'Test Description');
+      assert.ok(board.id);
+      assert.equal(board.name, 'Test Board');
+      assert.equal(board.description, 'Test Description');
+      assert.ok(board.createdAt);
+      assert.ok(board.updatedAt);
+      assert.deepEqual(board.columns, []);
+    });
+
+    test('BoardService getBoards returns all boards', () => {
+      const initialCount = boardService.getBoards().length;
+      boardService.createBoard('Board 1');
+      boardService.createBoard('Board 2');
+      const boards = boardService.getBoards();
+      assert.equal(boards.length, initialCount + 2);
+    });
+
+    test('BoardService getBoard returns specific board', () => {
+      const board = boardService.createBoard('Specific Board');
+      const retrieved = boardService.getBoard(board.id);
+      assert.ok(retrieved);
+      assert.equal(retrieved!.id, board.id);
+      assert.equal(retrieved!.name, 'Specific Board');
+    });
+
+    test('BoardService updateBoard updates board properties', () => {
+      const board = boardService.createBoard('Original Name');
+      const originalUpdatedAt = board.updatedAt.getTime();
+      const updated = boardService.updateBoard(board.id, { name: 'Updated Name', description: 'Updated Desc' });
+      assert.ok(updated);
+      assert.equal(updated!.name, 'Updated Name');
+      assert.equal(updated!.description, 'Updated Desc');
+      assert.ok(updated!.updatedAt.getTime() >= originalUpdatedAt);
+    });
+
+    test('BoardService deleteBoard removes board', () => {
+      const board = boardService.createBoard('To Delete');
+      const initialCount = boardService.getBoards().length;
+      const deleted = boardService.deleteBoard(board.id);
+      assert.equal(deleted, true);
+      assert.equal(boardService.getBoards().length, initialCount - 1);
+      assert.equal(boardService.getBoard(board.id), undefined);
+    });
+
+    test('BoardService storage scope management', () => {
+      // Test that storage scope can be changed
+      assert.equal(boardService.getStorageScope(), StorageScope.Global);
+      boardService.setStorageScope(StorageScope.Workspace);
+      assert.equal(boardService.getStorageScope(), StorageScope.Workspace);
+      boardService.setStorageScope(StorageScope.Global);
+      assert.equal(boardService.getStorageScope(), StorageScope.Global);
+    });
+  });
+
+  // Column Service Tests
+  suite('Column Service Tests', () => {
+    let boardService: any;
+    let columnService: any;
+
+    suiteSetup(() => {
+      // Create mock context
+      const mockStorage = new Map<string, any>();
+      const context = {
+        extensionUri: vscode.Uri.file(''),
+        subscriptions: [],
+        workspaceState: {
+          get: (key: string) => mockStorage.get(key),
+          update: (key: string, value: any) => mockStorage.set(key, value),
+        },
+        globalState: {
+          get: (key: string) => mockStorage.get(key),
+          update: (key: string, value: any) => mockStorage.set(key, value),
+        },
+      } as any;
+
+      boardService = new (require('../../boardService').BoardService)(context, StorageScope.Global);
+      columnService = new (require('../../columnService').ColumnService)(context, StorageScope.Global);
+    });
+
+    test('ColumnService should be created', () => {
+      assert.ok(columnService);
+    });
+
+    test('ColumnService createColumn creates column with correct properties', () => {
+      const board = boardService.createBoard('Test Board');
+      const column = columnService.createColumn(board.id, 'Test Column');
+      assert.ok(column.id);
+      assert.equal(column.boardId, board.id);
+      assert.equal(column.name, 'Test Column');
+      assert.equal(column.isDefault, false);
+      assert.equal(column.position, 0);
+      assert.ok(column.createdAt);
+    });
+
+    test('ColumnService createColumn with isDefault flag', () => {
+      const board = boardService.createBoard('Default Board');
+      const defaultColumn = columnService.createColumn(board.id, 'Backlog', true);
+      assert.equal(defaultColumn.isDefault, true);
+      assert.equal(defaultColumn.name, 'Backlog');
+    });
+
+    test('ColumnService getColumns returns columns for specific board', () => {
+      const board1 = boardService.createBoard('Board 1');
+      const board2 = boardService.createBoard('Board 2');
+
+      columnService.createColumn(board1.id, 'Column 1-1');
+      columnService.createColumn(board1.id, 'Column 1-2');
+      columnService.createColumn(board2.id, 'Column 2-1');
+
+      const board1Columns = columnService.getColumns(board1.id);
+      const board2Columns = columnService.getColumns(board2.id);
+
+      assert.equal(board1Columns.length, 2);
+      assert.equal(board2Columns.length, 1);
+      assert.equal(board1Columns[0].name, 'Column 1-1');
+      assert.equal(board1Columns[1].name, 'Column 1-2');
+    });
+
+    test('ColumnService getColumns sorts by position', () => {
+      const board = boardService.createBoard('Position Board');
+      const col1 = columnService.createColumn(board.id, 'First');
+      const col2 = columnService.createColumn(board.id, 'Second');
+      const col3 = columnService.createColumn(board.id, 'Third');
+
+      // Manually set positions to test sorting
+      columnService.updateColumn(col1.id, { position: 2 });
+      columnService.updateColumn(col2.id, { position: 0 });
+      columnService.updateColumn(col3.id, { position: 1 });
+
+      const columns = columnService.getColumns(board.id);
+      assert.equal(columns[0].name, 'Second'); // position 0
+      assert.equal(columns[1].name, 'Third'); // position 1
+      assert.equal(columns[2].name, 'First'); // position 2
+    });
+
+    test('ColumnService updateColumn updates name and position', () => {
+      const board = boardService.createBoard('Update Board');
+      const column = columnService.createColumn(board.id, 'Original Name');
+
+      const updated = columnService.updateColumn(column.id, { name: 'Updated Name', position: 5 });
+      assert.ok(updated);
+      assert.equal(updated!.name, 'Updated Name');
+      assert.equal(updated!.position, 5);
+    });
+
+    test('ColumnService updateColumn cannot update default columns', () => {
+      const board = boardService.createBoard('Default Update Board');
+      const defaultColumn = columnService.createColumn(board.id, 'Backlog', true);
+
+      const updated = columnService.updateColumn(defaultColumn.id, { name: 'New Name' });
+      assert.equal(updated, undefined);
+    });
+
+    test('ColumnService deleteColumn removes non-default columns', () => {
+      const board = boardService.createBoard('Delete Board');
+      const column = columnService.createColumn(board.id, 'To Delete');
+
+      const initialCount = columnService.getColumns(board.id).length;
+      const deleted = columnService.deleteColumn(column.id);
+      assert.equal(deleted, true);
+      assert.equal(columnService.getColumns(board.id).length, initialCount - 1);
+    });
+
+    test('ColumnService deleteColumn cannot delete default columns', () => {
+      const board = boardService.createBoard('Delete Default Board');
+      const defaultColumn = columnService.createColumn(board.id, 'Backlog', true);
+
+      const deleted = columnService.deleteColumn(defaultColumn.id);
+      assert.equal(deleted, false);
+      assert.equal(columnService.getColumns(board.id).length, 1);
+    });
+
+    test('ColumnService isColumnNameUnique validates uniqueness', () => {
+      const board = boardService.createBoard('Unique Board');
+      columnService.createColumn(board.id, 'Existing Column');
+
+      // Same name should not be unique
+      assert.equal(columnService.isColumnNameUnique(board.id, 'Existing Column'), false);
+      // Different name should be unique
+      assert.equal(columnService.isColumnNameUnique(board.id, 'New Column'), true);
+      // Same name but excluding existing should be unique
+      const existingColumn = columnService.getColumns(board.id)[0];
+      assert.equal(columnService.isColumnNameUnique(board.id, 'Existing Column', existingColumn.id), true);
+    });
+
+    test('ColumnService storage scope management', () => {
+      // Test that storage scope can be changed
+      assert.equal(columnService.getStorageScope(), StorageScope.Global);
+      columnService.setStorageScope(StorageScope.Workspace);
+      assert.equal(columnService.getStorageScope(), StorageScope.Workspace);
+      columnService.setStorageScope(StorageScope.Global);
+      assert.equal(columnService.getStorageScope(), StorageScope.Global);
+    });
+  });
+
+  // Task Service Kanban Extensions Tests
+  suite('Task Service Kanban Extensions', () => {
+    let boardService: any;
+    let columnService: any;
+    let taskService: any;
+    let timerService: any;
+
+    suiteSetup(() => {
+      // Create mock context
+      const mockStorage = new Map<string, any>();
+      const context = {
+        extensionUri: vscode.Uri.file(''),
+        subscriptions: [],
+        workspaceState: {
+          get: (key: string) => mockStorage.get(key),
+          update: (key: string, value: any) => mockStorage.set(key, value),
+        },
+        globalState: {
+          get: (key: string) => mockStorage.get(key),
+          update: (key: string, value: any) => mockStorage.set(key, value),
+        },
+      } as any;
+
+      boardService = new (require('../../boardService').BoardService)(context, StorageScope.Global);
+      columnService = new (require('../../columnService').ColumnService)(context, StorageScope.Global);
+      timerService = new (require('../../timerService').TimerService)(context, StorageScope.Global);
+      taskService = new (require('../../taskService').TaskService)(context, timerService, StorageScope.Global);
+    });
+
+    test('TaskService createTask with board and column assigns them', () => {
+      const board = boardService.createBoard('Task Board');
+      const column = columnService.createColumn(board.id, 'Task Column');
+
+      const task = taskService.createTask('Kanban Task', 'Description', board.id, column.id);
+      assert.ok(task.boardId);
+      assert.ok(task.columnId);
+      assert.equal(task.boardId, board.id);
+      assert.equal(task.columnId, column.id);
+      assert.equal(task.title, 'Kanban Task');
+      assert.equal(task.description, 'Description');
+    });
+
+    test('TaskService createTask without board and column creates task without assignments', () => {
+      const task = taskService.createTask('Simple Task');
+      assert.equal(task.boardId, undefined);
+      assert.equal(task.columnId, undefined);
+    });
+
+    test('TaskService moveTaskToColumn updates task board and column', () => {
+      const board1 = boardService.createBoard('Board 1');
+      const board2 = boardService.createBoard('Board 2');
+      const column1 = columnService.createColumn(board1.id, 'Column 1');
+      const column2 = columnService.createColumn(board2.id, 'Column 2');
+
+      const task = taskService.createTask('Movable Task');
+      assert.equal(task.boardId, undefined);
+      assert.equal(task.columnId, undefined);
+
+      // Move to first board/column
+      const moved = taskService.moveTaskToColumn(task.id, board1.id, column1.id);
+      assert.equal(moved, true);
+
+      const updatedTask = taskService.getTaskById(task.id);
+      assert.ok(updatedTask);
+      assert.equal(updatedTask!.boardId, board1.id);
+      assert.equal(updatedTask!.columnId, column1.id);
+
+      // Move to different board/column
+      const movedAgain = taskService.moveTaskToColumn(task.id, board2.id, column2.id);
+      assert.equal(movedAgain, true);
+
+      const updatedAgain = taskService.getTaskById(task.id);
+      assert.ok(updatedAgain);
+      assert.equal(updatedAgain!.boardId, board2.id);
+      assert.equal(updatedAgain!.columnId, column2.id);
+    });
+
+    test('TaskService moveTaskToColumn returns false for invalid task', () => {
+      const board = boardService.createBoard('Invalid Board');
+      const column = columnService.createColumn(board.id, 'Invalid Column');
+
+      const moved = taskService.moveTaskToColumn('invalid-id', board.id, column.id);
+      assert.equal(moved, false);
+    });
+
+    test('TaskService assignDefaultBoardAndColumn assigns to unassigned tasks', () => {
+      const board = boardService.createBoard('Default Board');
+      const column = columnService.createColumn(board.id, 'Default Column');
+
+      // Create tasks - some with assignments, some without
+      const assignedTask = taskService.createTask('Already Assigned', '', board.id, column.id);
+      const unassignedTask1 = taskService.createTask('Unassigned 1');
+      const unassignedTask2 = taskService.createTask('Unassigned 2');
+
+      // Assign defaults
+      taskService.assignDefaultBoardAndColumn(board.id, column.id);
+
+      // Check that unassigned tasks got defaults
+      const updated1 = taskService.getTaskById(unassignedTask1.id);
+      const updated2 = taskService.getTaskById(unassignedTask2.id);
+      const stillAssigned = taskService.getTaskById(assignedTask.id);
+
+      assert.ok(updated1);
+      assert.ok(updated2);
+      assert.ok(stillAssigned);
+
+      assert.equal(updated1!.boardId, board.id);
+      assert.equal(updated1!.columnId, column.id);
+      assert.equal(updated2!.boardId, board.id);
+      assert.equal(updated2!.columnId, column.id);
+
+      // Already assigned task should remain unchanged
+      assert.equal(stillAssigned!.boardId, board.id);
+      assert.equal(stillAssigned!.columnId, column.id);
+    });
+  });
+
+  // Kanban Integration Tests
+  suite('Kanban Integration Tests', () => {
+    let boardService: any;
+    let columnService: any;
+    let taskService: any;
+    let timerService: any;
+
+    suiteSetup(() => {
+      // Create mock context
+      const mockStorage = new Map<string, any>();
+      const context = {
+        extensionUri: vscode.Uri.file(''),
+        subscriptions: [],
+        workspaceState: {
+          get: (key: string) => mockStorage.get(key),
+          update: (key: string, value: any) => mockStorage.set(key, value),
+        },
+        globalState: {
+          get: (key: string) => mockStorage.get(key),
+          update: (key: string, value: any) => mockStorage.set(key, value),
+        },
+      } as any;
+
+      boardService = new (require('../../boardService').BoardService)(context, StorageScope.Global);
+      columnService = new (require('../../columnService').ColumnService)(context, StorageScope.Global);
+      timerService = new (require('../../timerService').TimerService)(context, StorageScope.Global);
+      taskService = new (require('../../taskService').TaskService)(context, timerService, StorageScope.Global);
+    });
+
+    test('Complete kanban workflow: create board, columns, tasks, and move tasks', () => {
+      // Create a project board
+      const projectBoard = boardService.createBoard('Project Alpha', 'Main project board');
+
+      // Create columns
+      const backlogColumn = columnService.createColumn(projectBoard.id, 'Backlog', true);
+      const inProgressColumn = columnService.createColumn(projectBoard.id, 'In Progress');
+      const reviewColumn = columnService.createColumn(projectBoard.id, 'Review');
+      const doneColumn = columnService.createColumn(projectBoard.id, 'Done');
+
+      // Verify board has columns
+      const board = boardService.getBoard(projectBoard.id);
+      assert.ok(board);
+      assert.equal(board!.columns.length, 0); // Board.columns is array of column IDs, not actual columns
+
+      // Verify columns exist for board
+      const boardColumns = columnService.getColumns(projectBoard.id);
+      assert.equal(boardColumns.length, 4);
+      assert.equal(boardColumns[0].name, 'Backlog');
+      assert.equal(boardColumns[1].name, 'In Progress');
+      assert.equal(boardColumns[2].name, 'Review');
+      assert.equal(boardColumns[3].name, 'Done');
+
+      // Create tasks in backlog
+      const task1 = taskService.createTask(
+        'Implement login',
+        'User authentication feature',
+        projectBoard.id,
+        backlogColumn.id
+      );
+      const task2 = taskService.createTask(
+        'Design dashboard',
+        'UI/UX for main dashboard',
+        projectBoard.id,
+        backlogColumn.id
+      );
+      const task3 = taskService.createTask(
+        'Write tests',
+        'Unit and integration tests',
+        projectBoard.id,
+        backlogColumn.id
+      );
+
+      // Move task to in progress
+      taskService.moveTaskToColumn(task1.id, projectBoard.id, inProgressColumn.id);
+      let updatedTask1 = taskService.getTaskById(task1.id);
+      assert.equal(updatedTask1!.boardId, projectBoard.id);
+      assert.equal(updatedTask1!.columnId, inProgressColumn.id);
+
+      // Move task to review
+      taskService.moveTaskToColumn(task1.id, projectBoard.id, reviewColumn.id);
+      updatedTask1 = taskService.getTaskById(task1.id);
+      assert.equal(updatedTask1!.columnId, reviewColumn.id);
+
+      // Move task to done
+      taskService.moveTaskToColumn(task1.id, projectBoard.id, doneColumn.id);
+      updatedTask1 = taskService.getTaskById(task1.id);
+      assert.equal(updatedTask1!.columnId, doneColumn.id);
+
+      // Verify all tasks are still in the system
+      const allTasks = taskService.getTasks();
+      assert.equal(allTasks.length, 3);
+
+      // Verify task assignments
+      const finalTask1 = allTasks.find((t: any) => t.id === task1.id);
+      const finalTask2 = allTasks.find((t: any) => t.id === task2.id);
+      const finalTask3 = allTasks.find((t: any) => t.id === task3.id);
+
+      assert.ok(finalTask1);
+      assert.ok(finalTask2);
+      assert.ok(finalTask3);
+
+      assert.equal(finalTask1!.boardId, projectBoard.id);
+      assert.equal(finalTask1!.columnId, doneColumn.id);
+      assert.equal(finalTask2!.boardId, projectBoard.id);
+      assert.equal(finalTask2!.columnId, backlogColumn.id);
+      assert.equal(finalTask3!.boardId, projectBoard.id);
+      assert.equal(finalTask3!.columnId, backlogColumn.id);
+    });
+
+    test('Multiple boards with separate workflows', () => {
+      // Create two separate boards
+      const board1 = boardService.createBoard('Frontend Board');
+      const board2 = boardService.createBoard('Backend Board');
+
+      // Create columns for each board
+      const board1Backlog = columnService.createColumn(board1.id, 'Backlog', true);
+      const board1Progress = columnService.createColumn(board1.id, 'In Progress');
+      const board2Backlog = columnService.createColumn(board2.id, 'Backlog', true);
+      const board2Progress = columnService.createColumn(board2.id, 'In Progress');
+
+      // Create tasks on different boards
+      const frontendTask = taskService.createTask('Build UI component', '', board1.id, board1Backlog.id);
+      const backendTask = taskService.createTask('Implement API', '', board2.id, board2Backlog.id);
+
+      // Move tasks independently
+      taskService.moveTaskToColumn(frontendTask.id, board1.id, board1Progress.id);
+      taskService.moveTaskToColumn(backendTask.id, board2.id, board2Progress.id);
+
+      // Verify tasks are on correct boards and columns
+      const updatedFrontend = taskService.getTaskById(frontendTask.id);
+      const updatedBackend = taskService.getTaskById(backendTask.id);
+
+      assert.equal(updatedFrontend!.boardId, board1.id);
+      assert.equal(updatedFrontend!.columnId, board1Progress.id);
+      assert.equal(updatedBackend!.boardId, board2.id);
+      assert.equal(updatedBackend!.columnId, board2Progress.id);
+
+      // Verify board isolation
+      const board1Columns = columnService.getColumns(board1.id);
+      const board2Columns = columnService.getColumns(board2.id);
+
+      assert.equal(board1Columns.length, 2);
+      assert.equal(board2Columns.length, 2);
+    });
+
+    test('Backward compatibility: existing tasks can be assigned to kanban', () => {
+      // Create tasks without board/column (simulating existing tasks)
+      const existingTask1 = taskService.createTask('Legacy Task 1');
+      const existingTask2 = taskService.createTask('Legacy Task 2');
+
+      // Verify they have no board/column initially
+      assert.equal(existingTask1.boardId, undefined);
+      assert.equal(existingTask1.columnId, undefined);
+      assert.equal(existingTask2.boardId, undefined);
+      assert.equal(existingTask2.columnId, undefined);
+
+      // Create default board and column
+      const defaultBoard = boardService.createBoard('Default Board');
+      const defaultColumn = columnService.createColumn(defaultBoard.id, 'Backlog', true);
+
+      // Assign defaults to existing tasks
+      taskService.assignDefaultBoardAndColumn(defaultBoard.id, defaultColumn.id);
+
+      // Verify tasks now have board and column
+      const updatedTask1 = taskService.getTaskById(existingTask1.id);
+      const updatedTask2 = taskService.getTaskById(existingTask2.id);
+
+      assert.ok(updatedTask1);
+      assert.ok(updatedTask2);
+      assert.equal(updatedTask1!.boardId, defaultBoard.id);
+      assert.equal(updatedTask1!.columnId, defaultColumn.id);
+      assert.equal(updatedTask2!.boardId, defaultBoard.id);
+      assert.equal(updatedTask2!.columnId, defaultColumn.id);
+    });
+
+    test('editColumn command argument processing works correctly', () => {
+      // Import the argument processing function
+      const { processEditColumnArgs } = require('../utils/commandUtils');
+
+      // Test with string argument
+      let result = processEditColumnArgs('test-column-id');
+      assert.equal(result, 'test-column-id');
+
+      // Test with TreeItem argument
+      const mockTreeItem = { id: 'column-abc123' };
+      result = processEditColumnArgs(mockTreeItem);
+      assert.equal(result, 'column-abc123');
+
+      // Test with undefined argument
+      result = processEditColumnArgs(undefined);
+      assert.equal(result, undefined);
+
+      // Test with null argument
+      result = processEditColumnArgs(null);
+      assert.equal(result, undefined);
+
+      // Test with empty object
+      result = processEditColumnArgs({});
+      assert.equal(result, undefined);
+    });
+
+    test('deleteColumn command argument processing works correctly', () => {
+      // Import the argument processing function
+      const { processDeleteColumnArgs } = require('../utils/commandUtils');
+
+      // Test with string argument
+      let result = processDeleteColumnArgs('test-column-id');
+      assert.equal(result, 'test-column-id');
+
+      // Test with TreeItem argument
+      const mockTreeItem = { id: 'column-abc123' };
+      result = processDeleteColumnArgs(mockTreeItem);
+      assert.equal(result, 'column-abc123');
+
+      // Test with undefined argument
+      result = processDeleteColumnArgs(undefined);
+      assert.equal(result, undefined);
+
+      // Test with null argument
+      result = processDeleteColumnArgs(null);
+      assert.equal(result, undefined);
+
+      // Test with empty object
+      result = processDeleteColumnArgs({});
+      assert.equal(result, undefined);
+    });
+
+    test('editBoard command argument processing works correctly', () => {
+      // Import the argument processing function
+      const { processEditBoardArgs } = require('../utils/commandUtils');
+
+      // Test with string argument
+      let result = processEditBoardArgs('test-board-id');
+      assert.equal(result, 'test-board-id');
+
+      // Test with TreeItem argument
+      const mockTreeItem = { id: 'board-abc123' };
+      result = processEditBoardArgs(mockTreeItem);
+      assert.equal(result, 'board-abc123');
+
+      // Test with undefined argument
+      result = processEditBoardArgs(undefined);
+      assert.equal(result, undefined);
+
+      // Test with null argument
+      result = processEditBoardArgs(null);
+      assert.equal(result, undefined);
+
+      // Test with empty object
+      result = processEditBoardArgs({});
+      assert.equal(result, undefined);
+    });
+
+    test('deleteBoard command argument processing works correctly', () => {
+      // Import the argument processing function
+      const { processDeleteBoardArgs } = require('../utils/commandUtils');
+
+      // Test with string argument
+      let result = processDeleteBoardArgs('test-board-id');
+      assert.equal(result, 'test-board-id');
+
+      // Test with TreeItem argument
+      const mockTreeItem = { id: 'board-abc123' };
+      result = processDeleteBoardArgs(mockTreeItem);
+      assert.equal(result, 'board-abc123');
+
+      // Test with undefined argument
+      result = processDeleteBoardArgs(undefined);
+      assert.equal(result, undefined);
+
+      // Test with null argument
+      result = processDeleteBoardArgs(null);
+      assert.equal(result, undefined);
+
+      // Test with empty object
+      result = processDeleteBoardArgs({});
+      assert.equal(result, undefined);
+    });
+  });
 });

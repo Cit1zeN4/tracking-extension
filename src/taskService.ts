@@ -1,15 +1,6 @@
 import * as vscode from 'vscode';
 import { TimerService } from './timerService';
-import { StorageScope } from './types';
-
-export interface Task {
-  id: string;
-  title: string;
-  description?: string;
-  source: 'manual' | 'external';
-  externalId?: string;
-  createdAt: Date;
-}
+import { StorageScope, Task } from './types';
 
 export class TaskService {
   private tasks: Task[] = [];
@@ -30,13 +21,15 @@ export class TaskService {
     this.loadTasks();
   }
 
-  createTask(title: string, description?: string): Task {
+  createTask(title: string, description?: string, boardId?: string, columnId?: string): Task {
     const task: Task = {
       id: this.generateId(),
       title,
       description,
       source: 'manual',
       createdAt: new Date(),
+      boardId,
+      columnId,
     };
 
     this.tasks.push(task);
@@ -81,6 +74,32 @@ export class TaskService {
       .getCompletedEntries()
       .filter((entry) => entry.taskId === taskId)
       .reduce((total, entry) => total + entry.duration, 0);
+  }
+
+  moveTaskToColumn(taskId: string, boardId: string, columnId: string): boolean {
+    const task = this.tasks.find((t) => t.id === taskId);
+    if (!task) return false;
+
+    task.boardId = boardId;
+    task.columnId = columnId;
+    this.saveTasks();
+    this._onTasksChanged.fire();
+    return true;
+  }
+
+  assignDefaultBoardAndColumn(defaultBoardId: string, defaultColumnId: string): void {
+    let updated = false;
+    this.tasks.forEach((task) => {
+      if (!task.boardId || !task.columnId) {
+        task.boardId = defaultBoardId;
+        task.columnId = defaultColumnId;
+        updated = true;
+      }
+    });
+    if (updated) {
+      this.saveTasks();
+      this._onTasksChanged.fire();
+    }
   }
 
   private generateId(): string {

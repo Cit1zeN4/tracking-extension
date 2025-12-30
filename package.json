@@ -3,7 +3,7 @@
   "displayName": "Time Tracking Extension",
   "description": "VS Code extension for tracking time spent on tasks and projects",
   "icon": "media/logo.png",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "publisher": "Cit1zeN4",
   "repository": "https://github.com/Cit1zeN4/tracking-extension",
   "license": "MIT",
@@ -73,6 +73,46 @@
       {
         "command": "tracking-extension.toggleStorageScope",
         "title": "Toggle Storage Scope"
+      },
+      {
+        "command": "tracking-extension.selectBoard",
+        "title": "Select Board",
+        "icon": "$(project)"
+      },
+      {
+        "command": "tracking-extension.moveTaskToColumn",
+        "title": "Move Task to Column",
+        "icon": "$(arrow-right)"
+      },
+      {
+        "command": "tracking-extension.createBoard",
+        "title": "Create Board",
+        "icon": "$(add)"
+      },
+      {
+        "command": "tracking-extension.editBoard",
+        "title": "Edit Board",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "tracking-extension.deleteBoard",
+        "title": "Delete Board",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "tracking-extension.createColumn",
+        "title": "Create Column",
+        "icon": "$(add)"
+      },
+      {
+        "command": "tracking-extension.editColumn",
+        "title": "Edit Column",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "tracking-extension.deleteColumn",
+        "title": "Delete Column",
+        "icon": "$(trash)"
       }
     ],
     "viewsContainers": {
@@ -149,6 +189,48 @@
           "command": "tracking-extension.deleteTask",
           "when": "view == tracking-extension.sidebar && viewItem =~ /task-.*/",
           "title": "Delete Task",
+          "group": "7_modification"
+        },
+        {
+          "command": "tracking-extension.moveTaskToColumn",
+          "when": "view == tracking-extension.sidebar && viewItem =~ /task-.*/",
+          "title": "Move to Column",
+          "group": "7_modification"
+        },
+        {
+          "command": "tracking-extension.createBoard",
+          "when": "view == tracking-extension.sidebar && viewItem == board-selector",
+          "title": "Create Board",
+          "group": "inline"
+        },
+        {
+          "command": "tracking-extension.editBoard",
+          "when": "view == tracking-extension.sidebar && viewItem == board-item",
+          "title": "Edit Board",
+          "group": "7_modification"
+        },
+        {
+          "command": "tracking-extension.deleteBoard",
+          "when": "view == tracking-extension.sidebar && viewItem == board-item",
+          "title": "Delete Board",
+          "group": "7_modification"
+        },
+        {
+          "command": "tracking-extension.createColumn",
+          "when": "view == tracking-extension.sidebar && viewItem == tasks-section",
+          "title": "Create Column",
+          "group": "inline"
+        },
+        {
+          "command": "tracking-extension.editColumn",
+          "when": "view == tracking-extension.sidebar && viewItem == column-custom",
+          "title": "Edit Column",
+          "group": "inline"
+        },
+        {
+          "command": "tracking-extension.deleteColumn",
+          "when": "view == tracking-extension.sidebar && viewItem == column-custom",
+          "title": "Delete Column",
           "group": "7_modification"
         }
       ]

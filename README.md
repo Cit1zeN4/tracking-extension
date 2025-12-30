@@ -4,19 +4,12 @@ VS Code extension for tracking time spent on tasks and projects.
 
 ## Features
 
-- ⏱️ **Timer**: Start### Switching Storage Scopes
-
-1. Open the Time Tracking sidebar in the activity bar
-2. Click on the "Storage Scope" item at the top
-3. Confirm the switch when prompted
-4. Tasks and timer data will be completely separate between global and workspace scopes
-
-**Important**: Switching storage scopes does not migrate data. Each scope maintains its own separate set of tasks and timer entries. When you switch scopes, you'll see only the data that exists in that specific scope.and pause the timer
-
-- 📋 **Task Management**: Create and view tasks
+- ⏱️ **Timer**: Start and pause the timer
+- 📋 **Task Management**: Create, edit, and delete tasks
+- 📊 **Kanban Boards**: Organize tasks into customizable boards and columns
 - 💾 **Data Saving**: Automatic saving of time and tasks between sessions
 - 📊 **View Logs**: View history of spent time
-- 🔄 **Status Bar Integration**: Minimalist interface in VS Code status bar - one control when timer is not active, extended control buttons when timer is running
+- 🔄 **Status Bar Integration**: Minimalist interface in VS Code status bar
 - 📱 **Activity Bar**: Centralized interface for all functions in VS Code activity bar
 - 🗂️ **Storage Scope**: Choose between global tasks (shared across workspaces) or workspace-specific tasks
 
@@ -57,6 +50,22 @@ The extension provides a "Time Tracking" icon in the VS Code activity bar (left 
 2. Use the "Storage Scope" item to choose between global or workspace-specific tasks
 3. Use the icons next to "Timer" to control the timer
 4. Expand "Timer" to view recent sessions
+
+### Kanban Boards
+
+The extension now supports kanban boards for better task organization:
+
+- **Board Management**: Create, edit, and delete boards
+- **Column Organization**: Add custom columns to boards (Backlog is default and protected)
+- **Task Movement**: Drag and drop tasks between columns or use context menu
+- **Board Selection**: Switch between different boards in the sidebar
+
+**How to use kanban:**
+
+1. In the activity bar, right-click the board selector to create/edit/delete boards
+2. Right-click the "Tasks" section to create new columns
+3. Drag tasks between columns or use the "Move to Column" context menu
+4. Select different boards using the board selector at the top
 
 ### Commands
 
@@ -99,21 +108,55 @@ All commands are available through the command palette (`Ctrl+Shift+P`) or throu
   - Switches between global and workspace-specific task storage
   - Migrates existing tasks to the new storage location
 
+#### Kanban Board Management
+
+- **Select Board** (`tracking-extension.selectBoard`)
+  - Choose which board to display in the sidebar
+
+- **Create Board** (`tracking-extension.createBoard`)
+  - Creates a new kanban board with a default "Backlog" column
+
+- **Edit Board** (`tracking-extension.editBoard`)
+  - Modify board name and description
+
+- **Delete Board** (`tracking-extension.deleteBoard`)
+  - Removes a board and migrates tasks to default board
+
+- **Create Column** (`tracking-extension.createColumn`)
+  - Adds a new column to the current board
+
+- **Edit Column** (`tracking-extension.editColumn`)
+  - Renames an existing column
+
+- **Delete Column** (`tracking-extension.deleteColumn`)
+  - Removes a column (only if empty)
+
+- **Move Task to Column** (`tracking-extension.moveTaskToColumn`)
+  - Moves a task to a different column
+
 ## Workflow
 
 ### Basic Usage
 
-1. **Create a task** (optional):
-   - `Ctrl+Shift+P` → "Create Task"
+1. **Create a board** (optional):
+   - Right-click the board selector in the sidebar → "Create Board"
    - Enter name and description
 
-2. **Start the timer**:
+2. **Create a task**:
+   - `Ctrl+Shift+P` → "Create Task"
+   - Enter name and description
+   - Task is automatically placed in the "Backlog" column
+
+3. **Start the timer**:
    - Click on the status bar or use "Start Timer" command
-   - Select a task from the list (if created)
+   - Select a task from the list
 
-3. **Work on the task**
+4. **Work on the task**
 
-4. **Stop the timer**:
+5. **Move task between columns**:
+   - Drag and drop in the sidebar or use "Move to Column" context menu
+
+6. **Stop the timer**:
    - Use "Stop Timer" command
    - Time will be saved automatically
 
@@ -121,6 +164,8 @@ All commands are available through the command palette (`Ctrl+Shift+P`) or throu
 
 - **Pause**: Use "Pause Timer" for breaks
 - **Multiple tasks**: Create separate tasks for different projects
+- **Kanban organization**: Use columns to track task progress (Backlog → In Progress → Done)
+- **Multiple boards**: Create different boards for different projects or teams
 - **View progress**: Regularly check time logs via "View Time Logs"
 
 ## Storage Scope Migration Guide
