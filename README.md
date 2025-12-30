@@ -4,12 +4,21 @@ VS Code extension for tracking time spent on tasks and projects.
 
 ## Features
 
-- ⏱️ **Timer**: Start, stop, and pause the timer
+- ⏱️ **Timer**: Start### Switching Storage Scopes
+
+1. Open the Time Tracking sidebar in the activity bar
+2. Click on the "Storage Scope" item at the top
+3. Confirm the switch when prompted
+4. Tasks and timer data will be completely separate between global and workspace scopes
+
+**Important**: Switching storage scopes does not migrate data. Each scope maintains its own separate set of tasks and timer entries. When you switch scopes, you'll see only the data that exists in that specific scope.and pause the timer
+
 - 📋 **Task Management**: Create and view tasks
 - 💾 **Data Saving**: Automatic saving of time and tasks between sessions
 - 📊 **View Logs**: View history of spent time
 - 🔄 **Status Bar Integration**: Minimalist interface in VS Code status bar - one control when timer is not active, extended control buttons when timer is running
 - 📱 **Activity Bar**: Centralized interface for all functions in VS Code activity bar
+- 🗂️ **Storage Scope**: Choose between global tasks (shared across workspaces) or workspace-specific tasks
 
 ## Installation
 
@@ -38,14 +47,16 @@ All status bar elements are clickable and allow timer control without opening ad
 
 The extension provides a "Time Tracking" icon in the VS Code activity bar (left sidebar), which combines all main controls in a tree view:
 
+- **Storage Scope**: Toggle between global and workspace-specific task storage
 - **Timer**: Next to the item, control icons are displayed ▶️ (Start), ⏹️ (Stop), ⏸️ (Pause); expand to view session history
 - **Tasks**: List of tasks with the ability to select for the timer
 
 **How to use:**
 
 1. In the activity bar, find the clock icon and open the tree
-2. Use the icons next to "Timer" to control the timer
-3. Expand "Timer" to view recent sessions
+2. Use the "Storage Scope" item to choose between global or workspace-specific tasks
+3. Use the icons next to "Timer" to control the timer
+4. Expand "Timer" to view recent sessions
 
 ### Commands
 
@@ -84,6 +95,10 @@ All commands are available through the command palette (`Ctrl+Shift+P`) or throu
   - Shows history of all timer sessions
   - Includes duration, date, and associated task
 
+- **Toggle Storage Scope** (`tracking-extension.toggleStorageScope`)
+  - Switches between global and workspace-specific task storage
+  - Migrates existing tasks to the new storage location
+
 ## Workflow
 
 ### Basic Usage
@@ -108,6 +123,31 @@ All commands are available through the command palette (`Ctrl+Shift+P`) or throu
 - **Multiple tasks**: Create separate tasks for different projects
 - **View progress**: Regularly check time logs via "View Time Logs"
 
+## Storage Scope Migration Guide
+
+### Upgrading from Previous Versions
+
+If you're upgrading from a version that only supported global storage:
+
+1. **Default Behavior**: The extension defaults to global storage for backward compatibility
+2. **Workspace-Specific Tasks**: To use workspace-specific tasks, toggle the storage scope in the sidebar
+3. **Data Migration**: When switching scopes, your existing tasks are automatically migrated
+4. **Per-Workspace Settings**: Each workspace can have its own storage scope preference
+
+### Choosing the Right Storage Scope
+
+- **Use Global Storage** when you want tasks shared across multiple projects/workspaces
+- **Use Workspace Storage** when you want tasks specific to individual projects
+
+### Switching Between Scopes
+
+1. Open the Time Tracking sidebar in the activity bar
+2. Click on the "Storage Scope" item at the top
+3. Confirm the migration when prompted
+4. Your tasks will be moved to the new storage location
+
+Note: Timer entries always follow the same storage scope as their associated tasks.
+
 ## Hotkeys
 
 By default, no hotkeys are assigned. You can configure them in VS Code settings:
@@ -118,9 +158,30 @@ By default, no hotkeys are assigned. You can configure them in VS Code settings:
 
 ## Data and Storage
 
-- **Tasks**: Saved in VS Code global state
-- **Time Logs**: Saved in VS Code global state
-- **Settings**: Use standard VS Code settings
+The extension supports two storage scopes for tasks and timer data:
+
+### Storage Scopes
+
+- **Global Storage** (default): Tasks and timer data are shared across all VS Code workspaces
+- **Workspace Storage**: Tasks and timer data are specific to each workspace
+
+### Switching Storage Scopes
+
+You can switch between storage scopes using:
+
+1. The "Storage Scope" item in the activity bar sidebar
+2. The "Toggle Storage Scope" command from the command palette
+3. VS Code settings: `tracking-extension.storageScope`
+
+When switching scopes, existing tasks are automatically migrated to the new storage location.
+
+### Data Persistence
+
+- **Tasks**: Saved in the selected storage scope (global or workspace)
+- **Time Logs**: Saved in the same scope as their associated tasks
+- **Settings**: Use standard VS Code settings for storage scope preference
+
+**Important**: Global and workspace storage scopes are completely separate. Tasks created in global scope are not visible in workspace scope, and vice versa. Switching between scopes does not transfer or migrate data.
 
 All data is saved between VS Code restarts and synchronized with VS Code settings.
 

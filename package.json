@@ -3,7 +3,7 @@
   "displayName": "Time Tracking Extension",
   "description": "VS Code extension for tracking time spent on tasks and projects",
   "icon": "media/logo.png",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "publisher": "Cit1zeN4",
   "repository": "https://github.com/Cit1zeN4/tracking-extension",
   "license": "MIT",
@@ -69,6 +69,10 @@
       {
         "command": "tracking-extension.openSidebar",
         "title": "Open Time Tracking Sidebar"
+      },
+      {
+        "command": "tracking-extension.toggleStorageScope",
+        "title": "Toggle Storage Scope"
       }
     ],
     "viewsContainers": {
@@ -148,6 +152,24 @@
           "group": "7_modification"
         }
       ]
+    },
+    "configuration": {
+      "title": "Time Tracking Extension",
+      "properties": {
+        "tracking-extension.storageScope": {
+          "type": "string",
+          "enum": [
+            "global",
+            "workspace"
+          ],
+          "enumDescriptions": [
+            "Tasks are shared across all workspaces",
+            "Tasks are specific to each workspace"
+          ],
+          "default": "global",
+          "description": "Choose where to store tasks: globally (shared across workspaces) or per workspace."
+        }
+      }
     }
   },
   "scripts": {

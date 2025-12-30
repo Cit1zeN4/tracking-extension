@@ -1,18 +1,4 @@
-# data-persistence Specification
-
-## Purpose
-
-TBD - created by archiving change init-project. Update Purpose after archive.
-## Requirements
-### Requirement: Time Entry Storage
-
-The system SHALL persist time entries across VS Code sessions.
-
-#### Scenario: Save Time Entry
-
-Given a time entry is completed
-When timer is stopped
-Then time entry is saved to persistent storage
+## MODIFIED Requirements
 
 ### Requirement: Task Storage
 
@@ -30,25 +16,7 @@ Given storage scope is set to workspace
 When user creates a task
 Then task is saved to workspace storage and only visible in current workspace
 
-### Requirement: Data Retrieval
-
-The system SHALL load persisted data on startup.
-
-#### Scenario: Load Data on Activation
-
-Given persisted data exists
-When extension activates
-Then time entries and tasks are loaded from storage
-
-### Requirement: Data Integrity
-
-The system SHALL handle storage errors gracefully.
-
-#### Scenario: Storage Failure
-
-Given storage operation fails
-When saving or loading data
-Then user is notified and operation continues with fallback behavior
+## ADDED Requirements
 
 ### Requirement: Storage Scope Configuration
 
@@ -92,4 +60,3 @@ Given a timer is running for a task
 When storage scope changes
 Then timer continues running and new entries follow new scope</content>
 <parameter name="filePath">d:\Proj\tracking-extension\openspec\changes\add-storage-scope-toggle\specs\data-persistence\spec.md
-
