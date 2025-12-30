@@ -3,7 +3,9 @@
 ## Purpose
 
 TBD - created by archiving change init-project. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Status Bar Display
 
 The system SHALL display timer status and current task name in the VS Code status bar, with task name limited to 80 characters.
@@ -628,4 +630,3 @@ Given board has extensive time tracking data
 When memory limits are approached
 Then system provides warnings and optimizes generation process</content>
 <parameter name="filePath">d:\Proj\tracking-extension\openspec\changes\add-pdf-time-reports\specs\user-interface\spec.md
-
