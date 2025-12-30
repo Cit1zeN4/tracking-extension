@@ -56,6 +56,38 @@ Given tasks exist
 When user needs to associate a task
 Then a selection interface shows available tasks
 
+### Requirement: Timer Start Validation
+
+The system SHALL require task association when starting a timer.
+
+#### Scenario: Timer Start Without Tasks
+
+Given no tasks exist
+When user attempts to start timer
+Then system displays error message "No tasks available. Create a task first to start tracking time."
+
+#### Scenario: Timer Start With Task Selection
+
+Given tasks exist
+When user starts timer
+Then system requires task selection before starting timer
+
+#### Scenario: Task Selection Required
+
+Given timer start is initiated
+When user is prompted to select task
+Then selection is mandatory (cannot be cancelled without selecting)
+
+### Requirement: Error Messaging
+
+The system SHALL provide clear error messages for timer start failures.
+
+#### Scenario: No Tasks Error Display
+
+Given timer start attempted without tasks
+When error occurs
+Then message guides user to create tasks first
+
 ### Requirement: Sidebar Panel
 
 The system SHALL provide a sidebar panel that consolidates main control elements for time tracking.

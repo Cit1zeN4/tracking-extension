@@ -4,11 +4,11 @@
 
 Modify the timer functionality to require task association when starting a timer, preventing users from starting timers without selecting a task.
 
-## Motivation
+## Why
 
 Currently, users can start timers without associating them with any task, which leads to untracked time entries that are not linked to specific work items. This reduces the effectiveness of time tracking and makes reporting less useful. Requiring task association ensures all tracked time is properly categorized and linked to work items.
 
-## Scope
+## What Changes
 
 This change modifies the timer start behavior:
 
