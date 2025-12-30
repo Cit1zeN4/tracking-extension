@@ -168,3 +168,7 @@ npm run test
 ## License
 
 MIT
+
+## Other
+
+<a href="https://www.flaticon.com/ru/free-icons/">Logo from pancaza - Flaticon</a>
