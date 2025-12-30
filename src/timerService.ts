@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { StorageScope } from './types';
 
 export interface TimeEntry {
   id: string;
@@ -27,11 +28,13 @@ export class TimerService {
   private completedEntries: TimeEntry[] = [];
   private intervalId?: NodeJS.Timeout;
   private context: vscode.ExtensionContext;
+  private storageScope: StorageScope;
   private _onStateChanged = new vscode.EventEmitter<void>();
   public readonly onTimerStateChanged = this._onStateChanged.event;
 
-  constructor(context: vscode.ExtensionContext) {
+  constructor(context: vscode.ExtensionContext, storageScope: StorageScope = StorageScope.Global) {
     this.context = context;
+    this.storageScope = storageScope;
     this.loadState();
   }
 
@@ -143,6 +146,38 @@ export class TimerService {
     this.saveState();
   }
 
+  setStorageScope(newScope: StorageScope): void {
+    if (newScope === this.storageScope) {
+      return; // No change needed
+    }
+
+    const previousScope = this.storageScope;
+    try {
+      // Save current state to the old storage before switching
+      this.saveState();
+
+      // Change storage scope
+      this.storageScope = newScope;
+
+      // Clear in-memory state and load from new storage
+      this.state = {
+        isRunning: false,
+        elapsedTime: 0,
+        pausedTime: 0,
+      };
+      this.completedEntries = [];
+      this.loadState();
+
+      // Fire event to update UI
+      this._onStateChanged.fire();
+    } catch (error) {
+      // Revert to previous scope if something goes wrong
+      this.storageScope = previousScope;
+      console.error('Failed to change timer storage scope:', error);
+      throw error;
+    }
+  }
+
   getStatus(): string {
     if (this.state.isRunning) {
       const minutes = Math.floor(this.state.elapsedTime / 60000);
@@ -172,14 +207,14 @@ export class TimerService {
   }
 
   private saveState(): void {
-    // Save to workspace state
-    this.context.workspaceState.update('timerState', this.state);
-    this.context.workspaceState.update('completedEntries', this.completedEntries);
+    const storage = this.storageScope === StorageScope.Global ? this.context.globalState : this.context.workspaceState;
+    storage.update('timerState', this.state);
+    storage.update('completedEntries', this.completedEntries);
   }
 
   private loadState(): void {
-    // Load from workspace state
-    const savedState = this.context.workspaceState.get('timerState') as any;
+    const storage = this.storageScope === StorageScope.Global ? this.context.globalState : this.context.workspaceState;
+    const savedState = storage.get('timerState') as TimerState | undefined;
     if (savedState) {
       this.state = savedState;
       // Convert date strings back to Date objects
@@ -195,15 +230,25 @@ export class TimerService {
       if (this.state.isRunning && this.state.currentEntry) {
         this.startInterval();
       }
+    } else {
+      // Reset to default state if no saved state in this scope
+      this.state = {
+        isRunning: false,
+        elapsedTime: 0,
+        pausedTime: 0,
+      };
     }
 
-    const savedEntries = this.context.workspaceState.get('completedEntries') as any[];
+    const savedEntries = storage.get('completedEntries') as TimeEntry[] | undefined;
     if (savedEntries) {
       this.completedEntries = savedEntries.map((entry) => ({
         ...entry,
         startTime: typeof entry.startTime === 'string' ? new Date(entry.startTime) : entry.startTime,
         endTime: entry.endTime && typeof entry.endTime === 'string' ? new Date(entry.endTime) : entry.endTime,
       }));
+    } else {
+      // Reset to empty array if no saved entries in this scope
+      this.completedEntries = [];
     }
   }
 }

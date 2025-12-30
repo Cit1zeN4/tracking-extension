@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { TimerService } from './timerService';
+import { StorageScope } from './types';
 
 export interface Task {
   id: string;
@@ -14,12 +15,18 @@ export class TaskService {
   private tasks: Task[] = [];
   private context: vscode.ExtensionContext;
   private timerService: TimerService;
+  private storageScope: StorageScope;
   private _onTasksChanged = new vscode.EventEmitter<void>();
   public readonly onTasksChanged = this._onTasksChanged.event;
 
-  constructor(context: vscode.ExtensionContext, timerService?: TimerService) {
+  constructor(
+    context: vscode.ExtensionContext,
+    timerService?: TimerService,
+    storageScope: StorageScope = StorageScope.Global
+  ) {
     this.context = context;
     this.timerService = timerService!;
+    this.storageScope = storageScope;
     this.loadTasks();
   }
 
@@ -81,18 +88,52 @@ export class TaskService {
   }
 
   private saveTasks(): void {
-    // Save to global state
-    this.context.globalState.update('tasks', this.tasks);
+    const storage = this.storageScope === StorageScope.Global ? this.context.globalState : this.context.workspaceState;
+    storage.update('tasks', this.tasks);
+  }
+
+  getStorageScope(): StorageScope {
+    return this.storageScope;
+  }
+
+  setStorageScope(newScope: StorageScope): void {
+    if (newScope === this.storageScope) {
+      return; // No change needed
+    }
+
+    const previousScope = this.storageScope;
+    try {
+      // Save current tasks to the old storage before switching
+      this.saveTasks();
+
+      // Change storage scope
+      this.storageScope = newScope;
+
+      // Clear in-memory tasks and load from new storage
+      this.tasks = [];
+      this.loadTasks();
+
+      // Fire event to update UI
+      this._onTasksChanged.fire();
+    } catch (error) {
+      // Revert to previous scope if something goes wrong
+      this.storageScope = previousScope;
+      console.error('Failed to change storage scope:', error);
+      throw error;
+    }
   }
 
   private loadTasks(): void {
-    // Load from global state
-    const savedTasks = this.context.globalState.get('tasks') as any[];
+    const storage = this.storageScope === StorageScope.Global ? this.context.globalState : this.context.workspaceState;
+    const savedTasks = storage.get('tasks') as Task[] | undefined;
     if (savedTasks) {
       this.tasks = savedTasks.map((task) => ({
         ...task,
         createdAt: typeof task.createdAt === 'string' ? new Date(task.createdAt) : task.createdAt,
       }));
+    } else {
+      // If no tasks in this storage scope, start with empty array
+      this.tasks = [];
     }
   }
 }

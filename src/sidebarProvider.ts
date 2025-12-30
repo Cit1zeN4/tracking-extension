@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { TimerService } from './timerService';
 import { TaskService, Task } from './taskService';
+import { StorageScope } from './types';
 
 function formatDuration(milliseconds: number): string {
   const totalSeconds = Math.floor(milliseconds / 1000);
@@ -36,7 +37,7 @@ export class SidebarProvider implements vscode.TreeDataProvider<TreeItem> {
   getChildren(element?: TreeItem): Thenable<TreeItem[]> {
     if (!element) {
       // Root level
-      return Promise.resolve([new TasksSectionItem()]);
+      return Promise.resolve([new StorageScopeItem(this.taskService), new TasksSectionItem()]);
     }
 
     if (element instanceof TasksSectionItem) {
@@ -52,6 +53,20 @@ export class SidebarProvider implements vscode.TreeDataProvider<TreeItem> {
 class TreeItem extends vscode.TreeItem {
   constructor(label: string, collapsibleState?: vscode.TreeItemCollapsibleState) {
     super(label, collapsibleState);
+  }
+}
+
+class StorageScopeItem extends TreeItem {
+  constructor(private taskService: TaskService) {
+    const currentScope = taskService.getStorageScope();
+    const scopeLabel = currentScope === StorageScope.Global ? 'Global Tasks' : 'Workspace Tasks';
+    super(scopeLabel, vscode.TreeItemCollapsibleState.None);
+    this.iconPath = new vscode.ThemeIcon('database');
+    this.tooltip = `Current storage: ${scopeLabel}. Click to change storage scope.`;
+    this.command = {
+      command: 'tracking-extension.toggleStorageScope',
+      title: 'Toggle Storage Scope',
+    };
   }
 }
 

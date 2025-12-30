@@ -3,6 +3,7 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { TimerService } from '../../timerService';
 import { TaskService } from '../../taskService';
+import { StorageScope } from '../../types';
 
 suite('Extension Test Suite', () => {
   let timerService: any;
@@ -25,8 +26,8 @@ suite('Extension Test Suite', () => {
     } as any;
 
     // Create services directly for testing
-    timerService = new (require('../../timerService').TimerService)(context);
-    taskService = new (require('../../taskService').TaskService)(context, timerService);
+    timerService = new (require('../../timerService').TimerService)(context, StorageScope.Global);
+    taskService = new (require('../../taskService').TaskService)(context, timerService, StorageScope.Global);
   });
 
   test('Services should be created', () => {
@@ -535,6 +536,107 @@ suite('Extension Test Suite', () => {
       assert.equal(updatedTask?.createdAt.getTime(), originalCreatedAt.getTime());
       assert.equal(updatedTask?.title, 'New Title');
       assert.equal(updatedTask?.description, 'Test Description'); // Should remain unchanged
+    });
+  });
+
+  suite('Storage Scope Tests', () => {
+    test('TaskService should initialize with correct storage scope', () => {
+      assert.equal(taskService.getStorageScope(), StorageScope.Global);
+    });
+
+    test('TaskService should change storage scope without migration', () => {
+      // Create separate storage for global and workspace
+      const globalStorage = new Map<string, any>();
+      const workspaceStorage = new Map<string, any>();
+      const context = {
+        extensionUri: vscode.Uri.file(''),
+        subscriptions: [],
+        workspaceState: {
+          get: (key: string) => workspaceStorage.get(key),
+          update: (key: string, value: any) => workspaceStorage.set(key, value),
+        },
+        globalState: {
+          get: (key: string) => globalStorage.get(key),
+          update: (key: string, value: any) => globalStorage.set(key, value),
+        },
+      } as any;
+
+      const testTimerService = new TimerService(context, StorageScope.Global);
+      const testTaskService = new TaskService(context, testTimerService, StorageScope.Global);
+
+      // Create a task in global storage
+      testTaskService.createTask('Global Task', 'Global Description');
+      assert.equal(testTaskService.getTasks().length, 1);
+
+      // Change to workspace storage
+      testTaskService.setStorageScope(StorageScope.Workspace);
+      assert.equal(testTaskService.getStorageScope(), StorageScope.Workspace);
+
+      // Should have no tasks in workspace storage (separate from global)
+      const tasks = testTaskService.getTasks();
+      assert.equal(tasks.length, 0);
+
+      // Switch back to global storage
+      testTaskService.setStorageScope(StorageScope.Global);
+      assert.equal(testTaskService.getStorageScope(), StorageScope.Global);
+
+      // Task should be back
+      const globalTasks = testTaskService.getTasks();
+      assert.equal(globalTasks.length, 1);
+      assert.ok(globalTasks[0]);
+      assert.equal(globalTasks[0].title, 'Global Task');
+      assert.equal(globalTasks[0].description, 'Global Description');
+    });
+
+    test('TimerService should change storage scope', () => {
+      // Initially global
+      // Change to workspace
+      timerService.setStorageScope(StorageScope.Workspace);
+      // Should not throw error
+      assert.ok(true);
+    });
+
+    test('Storage scopes should maintain separate task data', () => {
+      // Create separate storage for global and workspace
+      const globalStorage = new Map<string, any>();
+      const workspaceStorage = new Map<string, any>();
+      const context = {
+        extensionUri: vscode.Uri.file(''),
+        subscriptions: [],
+        workspaceState: {
+          get: (key: string) => workspaceStorage.get(key),
+          update: (key: string, value: any) => workspaceStorage.set(key, value),
+        },
+        globalState: {
+          get: (key: string) => globalStorage.get(key),
+          update: (key: string, value: any) => globalStorage.set(key, value),
+        },
+      } as any;
+
+      const workspaceTimerService = new TimerService(context, StorageScope.Workspace);
+      const workspaceTaskService = new TaskService(context, workspaceTimerService, StorageScope.Workspace);
+
+      // Create task in workspace storage
+      workspaceTaskService.createTask('Workspace Task');
+      assert.equal(workspaceTaskService.getTasks().length, 1);
+
+      // Switch to global scope
+      workspaceTaskService.setStorageScope(StorageScope.Global);
+      workspaceTimerService.setStorageScope(StorageScope.Global);
+
+      // Should have no tasks in global storage
+      const globalTasks = workspaceTaskService.getTasks();
+      assert.equal(globalTasks.length, 0);
+
+      // Switch back to workspace
+      workspaceTaskService.setStorageScope(StorageScope.Workspace);
+      workspaceTimerService.setStorageScope(StorageScope.Workspace);
+
+      // Task should be back
+      const workspaceTasks = workspaceTaskService.getTasks();
+      assert.equal(workspaceTasks.length, 1);
+      assert.ok(workspaceTasks[0]);
+      assert.equal(workspaceTasks[0].title, 'Workspace Task');
     });
   });
 });

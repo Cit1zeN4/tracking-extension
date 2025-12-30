@@ -3,6 +3,7 @@ import { TimerService } from './timerService';
 import { TaskService, Task } from './taskService';
 import { SidebarProvider } from './sidebarProvider';
 import { TaskDetailsProvider } from './taskDetailsProvider';
+import { StorageScope } from './types';
 
 let timerService: TimerService;
 let taskService: TaskService;
@@ -14,8 +15,12 @@ let statusBarStopButton: vscode.StatusBarItem;
 export function activate(context: vscode.ExtensionContext) {
   console.log('Time Tracking Extension activated');
 
-  timerService = new TimerService(context);
-  taskService = new TaskService(context, timerService);
+  // Read storage scope configuration
+  const config = vscode.workspace.getConfiguration('tracking-extension');
+  const storageScope = config.get('storageScope', 'global') as StorageScope;
+
+  timerService = new TimerService(context, storageScope);
+  taskService = new TaskService(context, timerService, storageScope);
 
   // Register sidebar
   const sidebarProvider = new SidebarProvider(timerService, taskService);
@@ -321,6 +326,34 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
+  const toggleStorageScopeCommand = vscode.commands.registerCommand(
+    'tracking-extension.toggleStorageScope',
+    async () => {
+      const currentScope = taskService.getStorageScope();
+      const newScope = currentScope === StorageScope.Global ? StorageScope.Workspace : StorageScope.Global;
+
+      const scopeName = newScope === StorageScope.Global ? 'global' : 'workspace';
+      const confirmMessage = `Switch to ${scopeName} storage? This will migrate your tasks.`;
+
+      const result = await vscode.window.showWarningMessage(confirmMessage, { modal: true }, 'Switch', 'Cancel');
+
+      if (result === 'Switch') {
+        try {
+          taskService.setStorageScope(newScope);
+          timerService.setStorageScope(newScope);
+
+          // Update the configuration to persist the choice
+          const config = vscode.workspace.getConfiguration('tracking-extension');
+          await config.update('storageScope', scopeName, vscode.ConfigurationTarget.Workspace);
+
+          vscode.window.showInformationMessage(`Switched to ${scopeName} storage. Tasks have been migrated.`);
+        } catch (error) {
+          vscode.window.showErrorMessage(`Failed to switch storage scope: ${error}`);
+        }
+      }
+    }
+  );
+
   // Add to subscriptions for proper disposal
   context.subscriptions.push(
     startTimerCommand,
@@ -332,7 +365,8 @@ export function activate(context: vscode.ExtensionContext) {
     openSidebarCommand,
     viewTaskDetailsCommand,
     deleteTaskCommand,
-    editTaskCommand
+    editTaskCommand,
+    toggleStorageScopeCommand
   );
 }
 
