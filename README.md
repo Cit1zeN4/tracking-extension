@@ -1,170 +1,170 @@
 # Time Tracking Extension
 
-Расширение VS Code для отслеживания времени, затрачиваемого на задачи и проекты.
+VS Code extension for tracking time spent on tasks and projects.
 
-## Возможности
+## Features
 
-- ⏱️ **Таймер**: Запуск, остановка и пауза таймера
-- 📋 **Управление задачами**: Создание и просмотр задач
-- 💾 **Сохранение данных**: Автоматическое сохранение времени и задач между сессиями
-- 📊 **Просмотр логов**: Просмотр истории затраченного времени
-- 🔄 **Интеграция со статус-баром**: Минималистичный интерфейс в статус-баре VS Code - один элемент управления когда таймер не активен, расширенные кнопки управления при работе таймера
-- 📱 **Activity Bar**: Централизованный интерфейс для всех функций в activity bar VS Code
+- ⏱️ **Timer**: Start, stop, and pause the timer
+- 📋 **Task Management**: Create and view tasks
+- 💾 **Data Saving**: Automatic saving of time and tasks between sessions
+- 📊 **View Logs**: View history of spent time
+- 🔄 **Status Bar Integration**: Minimalist interface in VS Code status bar - one control when timer is not active, extended control buttons when timer is running
+- 📱 **Activity Bar**: Centralized interface for all functions in VS Code activity bar
 
-## Установка
+## Installation
 
-1. Установите расширение из VS Code Marketplace или соберите из исходников:
+1. Install the extension from VS Code Marketplace or build from source:
 
    ```bash
    npm install
    npm run compile
    ```
 
-2. Перезагрузите VS Code или используйте команду "Developer: Reload Window"
+2. Reload VS Code or use the "Developer: Reload Window" command
 
-## Использование
+## Usage
 
-### Статус-бар
+### Status Bar
 
-Расширение добавляет элементы в статус-бар VS Code для удобного управления таймером:
+The extension adds elements to the VS Code status bar for convenient timer management:
 
-- **Когда таймер не запущен**: Показывается только один элемент **$(play) Start Timer**
-- **Когда таймер работает**: Показывается **$(clock) Название задачи - MM:SS** (название задачи ограничено 80 символами), а также кнопки **$(debug-pause) Pause** и **$(stop) Stop**
-- **Когда таймер на паузе**: Показывается активная задача с временем и кнопки управления
+- **When timer is not running**: Only one element is shown **$(play) Start Timer**
+- **When timer is running**: Shows **$(clock) Task Name - MM:SS** (task name limited to 80 characters), as well as **$(debug-pause) Pause** and **$(stop) Stop** buttons
+- **When timer is paused**: Shows active task with time and control buttons
 
-Все элементы статус-бара кликабельны и позволяют управлять таймером без открытия дополнительных панелей.
+All status bar elements are clickable and allow timer control without opening additional panels.
 
 ### Activity Bar
 
-Расширение предоставляет иконку "Time Tracking" в activity bar VS Code (левая боковая панель), которая объединяет все основные элементы управления в виде дерева:
+The extension provides a "Time Tracking" icon in the VS Code activity bar (left sidebar), which combines all main controls in a tree view:
 
-- **Timer**: Рядом с элементом отображаются иконки управления ▶️ (Start), ⏹️ (Stop), ⏸️ (Pause); разверните для просмотра истории сессий
-- **Tasks**: Список задач с возможностью выбора для таймера
+- **Timer**: Next to the item, control icons are displayed ▶️ (Start), ⏹️ (Stop), ⏸️ (Pause); expand to view session history
+- **Tasks**: List of tasks with the ability to select for the timer
 
-**Как использовать:**
+**How to use:**
 
-1. В activity bar найдите иконку часов и откройте дерево
-2. Используйте иконки рядом с "Timer" для управления таймером
-3. Разверните "Timer" для просмотра недавних сессий
+1. In the activity bar, find the clock icon and open the tree
+2. Use the icons next to "Timer" to control the timer
+3. Expand "Timer" to view recent sessions
 
-### Команды
+### Commands
 
-Все команды доступны через палитру команд (`Ctrl+Shift+P`) или через контекстное меню.
+All commands are available through the command palette (`Ctrl+Shift+P`) or through the context menu.
 
-#### Управление таймером
+#### Timer Management
 
 - **Start Timer** (`tracking-extension.startTimer`)
-  - Запускает новый таймер
-  - Предлагает выбрать задачу из списка (опционально)
-  - Показывает уведомление о запуске
+  - Starts a new timer
+  - Offers to select a task from the list (optional)
+  - Shows a notification about starting
 
 - **Stop Timer** (`tracking-extension.stopTimer`)
-  - Останавливает активный таймер
-  - Сохраняет время в лог
-  - Показывает продолжительность сессии
+  - Stops the active timer
+  - Saves time to log
+  - Shows session duration
 
 - **Pause Timer** (`tracking-extension.pauseTimer`)
-  - Приостанавливает активный таймер
-  - Время не учитывается пока таймер на паузе
+  - Pauses the active timer
+  - Time is not counted while timer is paused
 
-#### Управление задачами
+#### Task Management
 
 - **Create Task** (`tracking-extension.createTask`)
-  - Создает новую задачу
-  - Запрашивает название и описание
-  - Задачи сохраняются между сессиями
+  - Creates a new task
+  - Requests name and description
+  - Tasks are saved between sessions
 
 - **View Tasks** (`tracking-extension.viewTasks`)
-  - Показывает список всех задач
-  - Отображает название и описание каждой задачи
+  - Shows list of all tasks
+  - Displays name and description of each task
 
-#### Просмотр данных
+#### Data Viewing
 
 - **View Time Logs** (`tracking-extension.viewLogs`)
-  - Показывает историю всех сессий таймера
-  - Включает продолжительность, дату и связанную задачу
+  - Shows history of all timer sessions
+  - Includes duration, date, and associated task
 
-## Рабочий процесс
+## Workflow
 
-### Базовое использование
+### Basic Usage
 
-1. **Создайте задачу** (опционально):
+1. **Create a task** (optional):
    - `Ctrl+Shift+P` → "Create Task"
-   - Введите название и описание
+   - Enter name and description
 
-2. **Запустите таймер**:
-   - Нажмите на статус-бар или используйте команду "Start Timer"
-   - Выберите задачу из списка (если созданы)
+2. **Start the timer**:
+   - Click on the status bar or use "Start Timer" command
+   - Select a task from the list (if created)
 
-3. **Работайте над задачей**
+3. **Work on the task**
 
-4. **Остановите таймер**:
-   - Используйте команду "Stop Timer"
-   - Время будет сохранено автоматически
+4. **Stop the timer**:
+   - Use "Stop Timer" command
+   - Time will be saved automatically
 
-### Продвинутый рабочий процесс
+### Advanced Workflow
 
-- **Пауза**: Используйте "Pause Timer" для перерывов
-- **Несколько задач**: Создавайте отдельные задачи для разных проектов
-- **Просмотр прогресса**: Регулярно проверяйте логи времени через "View Time Logs"
+- **Pause**: Use "Pause Timer" for breaks
+- **Multiple tasks**: Create separate tasks for different projects
+- **View progress**: Regularly check time logs via "View Time Logs"
 
-## Горячие клавиши
+## Hotkeys
 
-По умолчанию горячие клавиши не назначены. Вы можете настроить их в настройках VS Code:
+By default, no hotkeys are assigned. You can configure them in VS Code settings:
 
 1. `Ctrl+Shift+P` → "Preferences: Open Keyboard Shortcuts"
-2. Найдите команды с префиксом "tracking-extension."
-3. Назначьте удобные комбинации клавиш
+2. Find commands with prefix "tracking-extension."
+3. Assign convenient key combinations
 
-## Данные и хранение
+## Data and Storage
 
-- **Задачи**: Сохраняются в глобальном состоянии VS Code
-- **Логи времени**: Сохраняются в глобальном состоянии VS Code
-- **Настройки**: Используют стандартные настройки VS Code
+- **Tasks**: Saved in VS Code global state
+- **Time Logs**: Saved in VS Code global state
+- **Settings**: Use standard VS Code settings
 
-Все данные сохраняются между перезапусками VS Code и синхронизируются с настройками VS Code.
+All data is saved between VS Code restarts and synchronized with VS Code settings.
 
-## Устранение неполадок
+## Troubleshooting
 
-### Таймер не запускается
+### Timer doesn't start
 
-- Убедитесь, что расширение активировано (проверьте статус-бар)
-- Попробуйте перезагрузить окно VS Code
+- Make sure the extension is activated (check status bar)
+- Try reloading VS Code window
 
-### Данные не сохраняются
+### Data not saved
 
-- Проверьте, что у вас есть права на запись в папку настроек VS Code
-- Попробуйте перезапустить VS Code
+- Check that you have write permissions to VS Code settings folder
+- Try restarting VS Code
 
-### Команды не отображаются
+### Commands not displayed
 
-- Убедитесь, что расширение установлено и активировано
-- Попробуйте команду "Developer: Reload Window"
+- Make sure the extension is installed and activated
+- Try "Developer: Reload Window" command
 
-## Разработка
+## Development
 
-Для разработки расширения:
+For extension development:
 
 ```bash
-# Установка зависимостей
+# Install dependencies
 npm install
 
-# Компиляция
+# Compile
 npm run compile
 
-# Слежение за изменениями
+# Watch for changes
 npm run watch
 
-# Линтинг
+# Linting
 npm run lint
 
-# Форматирование кода
+# Code formatting
 npm run format
 
-# Запуск тестов
+# Run tests
 npm run test
 ```
 
-## Лицензия
+## License
 
 MIT
