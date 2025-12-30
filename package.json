@@ -14,8 +14,13 @@
     "Other"
   ],
   "activationEvents": [
+    "*",
     "onStartupFinished",
-    "onView:tracking-extension.sidebar"
+    "onView:tracking-extension.sidebar",
+    "onCommand:tracking-extension.viewTaskDetails",
+    "onCommand:tracking-extension.deleteTask",
+    "onCommand:tracking-extension.editTask",
+    "onCommand:tracking-extension.openSidebar"
   ],
   "main": "./out/extension.js",
   "contributes": {
