@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { TaskService } from './taskService';
 import { TimerService } from './timerService';
+import { Task, TimeEntry } from './types';
 
 export class TaskDetailsProvider {
   private panel: vscode.WebviewPanel | undefined;
@@ -68,8 +69,8 @@ export class TaskDetailsProvider {
   }
 
   private getHtmlContent(
-    task: any,
-    timeEntries: any[],
+    task: Task,
+    timeEntries: TimeEntry[],
     totalTime: number,
     sessionCount: number,
     averageSession: number

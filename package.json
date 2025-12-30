@@ -20,7 +20,9 @@
     "onCommand:tracking-extension.viewTaskDetails",
     "onCommand:tracking-extension.deleteTask",
     "onCommand:tracking-extension.editTask",
-    "onCommand:tracking-extension.openSidebar"
+    "onCommand:tracking-extension.openSidebar",
+    "onCommand:tracking-extension.generatePdfReport",
+    "onCommand:tracking-extension.deleteAllTasks"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -113,6 +115,16 @@
         "command": "tracking-extension.deleteColumn",
         "title": "Delete Column",
         "icon": "$(trash)"
+      },
+      {
+        "command": "tracking-extension.deleteAllTasks",
+        "title": "Delete All Tasks",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "tracking-extension.generatePdfReport",
+        "title": "Generate PDF Time Report",
+        "icon": "$(output)"
       }
     ],
     "viewsContainers": {

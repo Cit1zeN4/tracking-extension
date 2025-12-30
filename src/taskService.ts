@@ -42,6 +42,10 @@ export class TaskService {
     return [...this.tasks];
   }
 
+  getTasksByColumnId(columnId: string): Task[] {
+    return this.tasks.filter((task) => task.columnId === columnId);
+  }
+
   getTaskById(id: string): Task | undefined {
     return this.tasks.find((task) => task.id === id);
   }

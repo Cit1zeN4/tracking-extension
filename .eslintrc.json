@@ -17,6 +17,7 @@
       }
     ],
     "require-jsdoc": "off",
+    "valid-jsdoc": "off",
     "prettier/prettier": "error"
   },
   "env": {

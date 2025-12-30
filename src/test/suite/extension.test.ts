@@ -1259,5 +1259,49 @@ suite('Extension Test Suite', () => {
       result = processDeleteBoardArgs({});
       assert.equal(result, undefined);
     });
+
+    test('Deleting a board deletes all associated tasks', () => {
+      // Create a board and some tasks
+      const board = boardService.createBoard('Board to Delete');
+      const column = columnService.createColumn(board.id, 'Test Column');
+
+      taskService.createTask('Task 1', 'Description 1', board.id, column.id);
+      taskService.createTask('Task 2', 'Description 2', board.id, column.id);
+      taskService.createTask('Task 3', 'Description 3', board.id, column.id);
+
+      // Verify tasks are created
+      const tasksBefore = taskService.getTasks().length;
+      const boardsBefore = boardService.getBoards().length;
+
+      // Delete the board (this should delete the tasks)
+      const deleted = boardService.deleteBoard(board.id, taskService);
+      assert.equal(deleted, true);
+
+      // Verify board is deleted
+      assert.equal(boardService.getBoards().length, boardsBefore - 1);
+
+      // Verify tasks are deleted
+      const tasksAfter = taskService.getTasks().length;
+      assert.equal(tasksAfter, tasksBefore - 3);
+    });
+
+    test('Delete all tasks removes all tasks', () => {
+      // Create some tasks
+      const task1 = taskService.createTask('Task 1', 'Description 1');
+      const task2 = taskService.createTask('Task 2', 'Description 2');
+      const task3 = taskService.createTask('Task 3', 'Description 3');
+
+      // Verify tasks are created
+      const tasksBefore = taskService.getTasks().length;
+
+      // Delete all tasks (simulate the command logic)
+      taskService.deleteTask(task1.id);
+      taskService.deleteTask(task2.id);
+      taskService.deleteTask(task3.id);
+
+      // Verify tasks are deleted
+      const tasksAfter = taskService.getTasks().length;
+      assert.equal(tasksAfter, tasksBefore - 3);
+    });
   });
 });

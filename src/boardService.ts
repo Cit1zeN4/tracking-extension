@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { Board, StorageScope } from './types';
+import { TaskService } from './taskService';
 
 export class BoardService {
   private boards: Board[] = [];
@@ -48,9 +49,17 @@ export class BoardService {
     return board;
   }
 
-  deleteBoard(id: string): boolean {
+  deleteBoard(id: string, taskService?: TaskService): boolean {
     const index = this.boards.findIndex((board) => board.id === id);
     if (index === -1) return false;
+
+    // Delete all tasks associated with this board
+    if (taskService) {
+      const tasksToDelete = taskService.getTasks().filter((t) => t.boardId === id);
+      for (const task of tasksToDelete) {
+        taskService.deleteTask(task.id);
+      }
+    }
 
     this.boards.splice(index, 1);
     this.saveBoards();

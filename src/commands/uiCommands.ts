@@ -124,14 +124,43 @@ export function registerUICommands(
       });
 
       if (name) {
-        const task = taskService.createTask(name, undefined, targetBoardId);
-        vscode.window.showInformationMessage(`Task created: ${name}`);
+        const description = await vscode.window.showInputBox({
+          prompt: 'Enter task description (optional)',
+          placeHolder: 'Description',
+        });
 
-        // Optionally open task details
-        vscode.commands.executeCommand('tracking-extension.viewTaskDetails', task.id);
+        // Find the default column for the board
+        const columns = columnService.getColumns(targetBoardId);
+        const defaultColumn = columns.find((col) => col.isDefault) || columns[0];
+
+        taskService.createTask(name, description || undefined, targetBoardId, defaultColumn?.id);
+        vscode.window.showInformationMessage(`Task created: ${name}`);
       }
     }
   );
+
+  const deleteAllTasksCommand = vscode.commands.registerCommand('tracking-extension.deleteAllTasks', async () => {
+    const tasks = taskService.getTasks();
+    if (tasks.length === 0) {
+      vscode.window.showInformationMessage('No tasks to delete.');
+      return;
+    }
+
+    const result = await vscode.window.showWarningMessage(
+      `Delete all ${tasks.length} tasks? This will permanently delete all tasks and their time entries. ` +
+        `This action cannot be undone.`,
+      { modal: true },
+      'Delete All',
+      'Cancel'
+    );
+
+    if (result === 'Delete All') {
+      for (const task of tasks) {
+        taskService.deleteTask(task.id);
+      }
+      vscode.window.showInformationMessage(`All ${tasks.length} tasks deleted successfully.`);
+    }
+  });
 
   return [
     viewLogsCommand,
@@ -139,5 +168,6 @@ export function registerUICommands(
     toggleStorageScopeCommand,
     moveTaskToColumnCommand,
     createTaskForBoardCommand,
+    deleteAllTasksCommand,
   ];
 }

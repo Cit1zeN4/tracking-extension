@@ -158,32 +158,14 @@ export function registerBoardCommands(
 
       if (board) {
         const result = await vscode.window.showWarningMessage(
-          `Delete board "${board.name}"? This will also delete all associated columns and move tasks.`,
+          `Delete board "${board.name}"? This will also delete all associated columns and tasks.`,
           { modal: true },
           'Delete',
           'Cancel'
         );
 
         if (result === 'Delete') {
-          // Move tasks to default board if this is not the only board
-          const allBoards = boardService.getBoards();
-          const remainingBoards = allBoards.filter((b) => b.id !== board!.id);
-          if (remainingBoards.length > 0) {
-            const defaultBoard = remainingBoards[0];
-            if (defaultBoard) {
-              const tasksToMove = taskService.getTasks().filter((t) => t.boardId === board!.id);
-              const defaultColumns = columnService.getColumns(defaultBoard.id);
-              const defaultColumn = defaultColumns.find((c) => c.isDefault) || defaultColumns[0];
-
-              if (defaultColumn) {
-                for (const task of tasksToMove) {
-                  taskService.moveTaskToColumn(task.id, defaultBoard.id, defaultColumn.id);
-                }
-              }
-            }
-          }
-
-          boardService.deleteBoard(board.id);
+          boardService.deleteBoard(board.id, taskService);
           vscode.window.showInformationMessage(`Board deleted: ${board.name}`);
         }
       }
