@@ -54,3 +54,13 @@ Timer state SHALL persist across VS Code sessions.
 Given a timer is running
 When VS Code is restarted
 Then timer state is restored on next activation
+
+### Requirement: Task Association Required
+
+Timer start SHALL require association with a task.
+
+#### Scenario: Timer Start Requires Task
+
+Given user executes start timer command
+When no task is selected or available
+Then timer start is rejected with error message

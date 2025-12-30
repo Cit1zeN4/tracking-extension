@@ -10,6 +10,7 @@ import { registerTaskCommands } from './taskCommands';
 import { registerBoardCommands } from './boardCommands';
 import { registerColumnCommands } from './columnCommands';
 import { registerUICommands } from './uiCommands';
+import { registerReportCommands } from './reportCommands';
 
 export function registerCommands(
   context: vscode.ExtensionContext,
@@ -26,7 +27,9 @@ export function registerCommands(
   disposables.push(...registerTimerCommands(timerService, taskService));
 
   // Register task commands
-  disposables.push(...registerTaskCommands(timerService, taskService, taskDetailsProvider));
+  disposables.push(
+    ...registerTaskCommands(timerService, taskService, taskDetailsProvider, sidebarProvider, columnService)
+  );
 
   // Register board commands
   disposables.push(...registerBoardCommands(taskService, boardService, columnService, sidebarProvider));
@@ -36,6 +39,9 @@ export function registerCommands(
 
   // Register UI commands
   disposables.push(...registerUICommands(taskService, columnService, sidebarProvider));
+
+  // Register report commands
+  disposables.push(...registerReportCommands(timerService, taskService, boardService, columnService));
 
   return disposables;
 }

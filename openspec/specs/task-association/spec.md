@@ -3,7 +3,9 @@
 ## Purpose
 
 TBD - created by archiving change init-project. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Task Creation
 
 The system SHALL allow users to create manual tasks for time tracking.
@@ -34,15 +36,21 @@ Given user has created tasks
 When user views task list
 Then all tasks are displayed with their details
 
-### Requirement: Optional Task Association
+### Requirement: Required Task Association
 
-Time tracking SHALL work without requiring task association.
+Time tracking SHALL require task association for all timer operations.
 
-#### Scenario: Timer Without Task
+#### Scenario: Timer Requires Task
 
-Given no tasks exist
-When user starts a timer
-Then timer runs normally without task association
+Given user attempts to start a timer
+When no tasks exist or no task is selected
+Then timer start is prevented with appropriate error message
+
+#### Scenario: Timer With Task
+
+Given tasks exist
+When user starts a timer and selects a task
+Then timer runs with task association
 
 ### Requirement: Board-Based Task Organization
 
@@ -123,4 +131,3 @@ Then timer continues with updated context
 Given task is deleted
 When cleanup occurs
 Then board/column references are handled appropriately
-

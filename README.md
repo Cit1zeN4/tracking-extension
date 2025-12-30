@@ -12,6 +12,7 @@ VS Code extension for tracking time spent on tasks and projects.
 - 🔄 **Status Bar Integration**: Minimalist interface in VS Code status bar
 - 📱 **Activity Bar**: Centralized interface for all functions in VS Code activity bar
 - 🗂️ **Storage Scope**: Choose between global tasks (shared across workspaces) or workspace-specific tasks
+- 📄 **PDF Reports**: Generate professional time tracking reports organized by kanban board columns
 
 ## Installation
 
@@ -133,6 +134,31 @@ All commands are available through the command palette (`Ctrl+Shift+P`) or throu
 
 - **Move Task to Column** (`tracking-extension.moveTaskToColumn`)
   - Moves a task to a different column
+
+#### PDF Report Generation
+
+- **Generate PDF Time Report** (`tracking-extension.generatePdfReport`)
+  - Creates a professional PDF report of time tracking data
+  - Organized by kanban board columns
+  - Includes task details, time spent, and individual time entries
+  - Supports date range filtering (All Time, Last 7/30 Days, Custom Range)
+
+**How to generate a PDF report:**
+
+1. Ensure you have at least one board with tasks that have time tracking data
+2. Use `Ctrl+Shift+P` → "Generate PDF Time Report"
+3. Select a board from the list
+4. Choose a date range for the report
+5. Select a save location for the PDF file
+6. The report will be generated and automatically opened
+
+**Report Contents:**
+
+- Board information and date range
+- Summary of total time tracked
+- Task breakdown organized by columns
+- Individual time entries for each task with timestamps
+- Professional formatting with colors and structured layout
 
 ## Workflow
 

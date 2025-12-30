@@ -3,11 +3,15 @@ import { TimerService } from '../timerService';
 import { TaskService } from '../taskService';
 import { Task } from '../types';
 import { TaskDetailsProvider } from '../taskDetailsProvider';
+import { SidebarProvider } from '../sidebarProvider';
+import { ColumnService } from '../columnService';
 
 export function registerTaskCommands(
   timerService: TimerService,
   taskService: TaskService,
-  taskDetailsProvider: TaskDetailsProvider
+  taskDetailsProvider: TaskDetailsProvider,
+  sidebarProvider: SidebarProvider,
+  columnService: ColumnService
 ): vscode.Disposable[] {
   const createTaskCommand = vscode.commands.registerCommand('tracking-extension.createTask', async () => {
     const title = await vscode.window.showInputBox({
@@ -21,7 +25,17 @@ export function registerTaskCommands(
         placeHolder: 'Description',
       });
 
-      const task = taskService.createTask(title, description);
+      // Use selected board if available
+      const boardId = sidebarProvider.getSelectedBoardId();
+      let columnId: string | undefined;
+
+      if (boardId) {
+        const columns = columnService.getColumns(boardId);
+        const defaultColumn = columns.find((col) => col.isDefault) || columns[0];
+        columnId = defaultColumn?.id;
+      }
+
+      const task = taskService.createTask(title, description, boardId, columnId);
       vscode.window.showInformationMessage(`Task created: ${task.title}`);
     }
   });
