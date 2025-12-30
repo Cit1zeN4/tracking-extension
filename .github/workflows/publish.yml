@@ -18,6 +18,9 @@ jobs:
         with:
           node-version: '18'
 
+      - name: Install xvfb
+        run: sudo apt-get install -y xvfb
+
       - name: Install dependencies
         run: npm ci
 
@@ -31,7 +34,7 @@ jobs:
         run: npm run compile
 
       - name: Run tests
-        run: npm test
+        run: xvfb-run -a npm test
 
       - name: Publish to Visual Studio Marketplace
         uses: HaaLeo/publish-vscode-extension@v2
