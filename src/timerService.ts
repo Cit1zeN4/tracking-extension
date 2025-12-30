@@ -1,22 +1,5 @@
 import * as vscode from 'vscode';
-import { StorageScope } from './types';
-
-export interface TimeEntry {
-  id: string;
-  taskId?: string;
-  startTime: Date;
-  endTime?: Date;
-  duration: number; // in milliseconds
-  description?: string;
-}
-
-export interface TimerState {
-  isRunning: boolean;
-  currentEntry?: TimeEntry;
-  elapsedTime: number;
-  pausedTime: number; // Time elapsed when paused
-  resumeTime?: number; // Time when timer was resumed (timestamp)
-}
+import { StorageScope, TimeEntry, TimerState } from './types';
 
 export class TimerService {
   private state: TimerState = {
